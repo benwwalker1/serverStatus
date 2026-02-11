@@ -1,15 +1,15 @@
 # Server Status Dashboard
 
-Updated: **2026-02-11T23:30:47Z**
+Updated: **2026-02-11T23:36:06Z**
 
 ## Current Fleet Status
 
 | Server | Ping | CUDA | Mumax3 | CPU util. | GPU util. | CPU(logical/physical) | GPU count |
 | ------ | ---- | ---- | ------ | --------- | --------- | -------------------- | --------- |
-| nsc1.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :white_check_mark: ok | 0.20% | 0.00% | 38/20 | 1 |
-| nsc2.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :white_check_mark: ok | 0.30% | 0.00% | 16/8 | 1 |
-| nsc3.utdallas.edu | :white_check_mark: online | :x: error | :x: error | 0.40% | NA | 24/12 | 2 |
-| nsc4.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :white_check_mark: ok | 1.10% | 0.00% | 24/12 | 2 |
+| nsc1.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :white_check_mark: ok | 0.10% | 0.00% | 38/20 | 1 |
+| nsc2.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :white_check_mark: ok | 1.80% | 0.00% | 16/8 | 1 |
+| nsc3.utdallas.edu | :white_check_mark: online | :x: error | :x: error | 0.20% | NA | 24/12 | 2 |
+| nsc4.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :white_check_mark: ok | 0.20% | 0.00% | 24/12 | 2 |
 
 ## Hardware Inventory (latest known)
 
@@ -24,10 +24,10 @@ Updated: **2026-02-11T23:30:47Z**
 
 | Server | Samples | Ping uptime | CUDA healthy | Mumax3 healthy | Avg CPU util. | Avg GPU util. | CPU>85% samples | GPU>90% samples |
 | ------ | ------- | ----------- | ------------ | -------------- | ------------- | ------------- | --------------- | --------------- |
-| nsc1.utdallas.edu | 75 | 100.00% | 100.00% | 100.00% | 2.02% | 0.00% | 1 | 0 |
-| nsc2.utdallas.edu | 76 | 100.00% | 100.00% | 100.00% | 9.83% | 0.00% | 7 | 0 |
-| nsc3.utdallas.edu | 76 | 100.00% | 0.00% | 0.00% | 27.92% | NA | 21 | 0 |
-| nsc4.utdallas.edu | 76 | 100.00% | 100.00% | 100.00% | 0.77% | 0.00% | 0 | 0 |
+| nsc1.utdallas.edu | 76 | 100.00% | 100.00% | 100.00% | 1.99% | 0.00% | 1 | 0 |
+| nsc2.utdallas.edu | 77 | 100.00% | 100.00% | 100.00% | 9.73% | 0.00% | 7 | 0 |
+| nsc3.utdallas.edu | 77 | 100.00% | 0.00% | 0.00% | 27.56% | NA | 21 | 0 |
+| nsc4.utdallas.edu | 77 | 100.00% | 100.00% | 100.00% | 0.77% | 0.00% | 0 | 0 |
 
 ## SLO Rollups
 
@@ -70,10 +70,6 @@ Updated: **2026-02-11T23:30:47Z**
 
 | Timestamp (UTC) | Server | Ping | CUDA | Mumax3 | CPU util. | GPU util. | CPU(logical/physical) | GPU count | RAM GB |
 | --------------- | ------ | ---- | ---- | ------ | --------- | --------- | -------------------- | --------- | ------ |
-| 2026-02-11T22:15:38Z | nsc2.utdallas.edu | online | ok | ok | 0.30% | 0.00% | 16/8 | 1 | 31.02 |
-| 2026-02-11T22:15:38Z | nsc3.utdallas.edu | online | error | error | 0.20% | NA | 24/12 | 2 | 31.01 |
-| 2026-02-11T22:15:38Z | nsc4.utdallas.edu | online | ok | ok | 0.20% | 0.00% | 24/12 | 2 | 30.96 |
-| 2026-02-11T22:20:57Z | nsc1.utdallas.edu | online | ok | ok | 0.20% | 0.00% | 38/20 | 1 | 125.16 |
 | 2026-02-11T22:20:57Z | nsc2.utdallas.edu | online | ok | ok | 0.30% | 0.00% | 16/8 | 1 | 31.02 |
 | 2026-02-11T22:20:57Z | nsc3.utdallas.edu | online | error | error | 0.20% | NA | 24/12 | 2 | 31.01 |
 | 2026-02-11T22:20:57Z | nsc4.utdallas.edu | online | ok | ok | 0.40% | 0.00% | 24/12 | 2 | 30.96 |
@@ -129,6 +125,10 @@ Updated: **2026-02-11T23:30:47Z**
 | 2026-02-11T23:30:47Z | nsc2.utdallas.edu | online | ok | ok | 0.30% | 0.00% | 16/8 | 1 | 31.02 |
 | 2026-02-11T23:30:47Z | nsc3.utdallas.edu | online | error | error | 0.40% | NA | 24/12 | 2 | 31.01 |
 | 2026-02-11T23:30:47Z | nsc4.utdallas.edu | online | ok | ok | 1.10% | 0.00% | 24/12 | 2 | 30.96 |
+| 2026-02-11T23:36:06Z | nsc1.utdallas.edu | online | ok | ok | 0.10% | 0.00% | 38/20 | 1 | 125.16 |
+| 2026-02-11T23:36:06Z | nsc2.utdallas.edu | online | ok | ok | 1.80% | 0.00% | 16/8 | 1 | 31.02 |
+| 2026-02-11T23:36:06Z | nsc3.utdallas.edu | online | error | error | 0.20% | NA | 24/12 | 2 | 31.01 |
+| 2026-02-11T23:36:06Z | nsc4.utdallas.edu | online | ok | ok | 0.20% | 0.00% | 24/12 | 2 | 30.96 |
 
 </details>
 
