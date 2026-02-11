@@ -1,52 +1,50 @@
 # Server Status Dashboard
 
-Updated (Central US): **2026-02-11 10:17:01 CST**
-Updated (Central EU): **2026-02-11 17:17:01 CET**
-Updated (UTC): **2026-02-11T16:17:01Z**
+Updated: **2026-02-11T16:14:54Z**
 
 ## Current Fleet Status
 
 | Server | Ping | CUDA | Mumax3 | CPU util. | GPU util. | CPU(logical/physical) | GPU count |
 | ------ | ---- | ---- | ------ | --------- | --------- | -------------------- | --------- |
-| nsc1.utdallas.edu | :x: offline | :grey_question: unknown | :grey_question: unknown | NA | NA | NA/NA | NA |
-| nsc2.utdallas.edu | :x: offline | :grey_question: unknown | :grey_question: unknown | NA | NA | NA/NA | NA |
-| nsc3.utdallas.edu | :x: offline | :grey_question: unknown | :grey_question: unknown | NA | NA | NA/NA | NA |
-| nsc4.utdallas.edu | :x: offline | :grey_question: unknown | :grey_question: unknown | NA | NA | NA/NA | NA |
+| nsc1.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :white_check_mark: ok | 0.20% | 0.00% | 38/20 | 1 |
+| nsc2.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :white_check_mark: ok | 0.60% | 0.00% | 16/8 | 1 |
+| nsc3.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :x: error | 100.00% | 0.00% | 24/12 | 2 |
+| nsc4.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :white_check_mark: ok | 0.40% | 0.00% | 24/12 | 2 |
 
 ## Hardware Inventory (latest known)
 
 | Server | Logical CPUs | Physical CPUs | GPU count | GPU model(s) | RAM total (GB) |
 | ------ | ------------ | ------------- | --------- | ------------ | -------------- |
-| nsc1.utdallas.edu | NA | NA | NA | NA | NA |
-| nsc2.utdallas.edu | NA | NA | NA | NA | NA |
-| nsc3.utdallas.edu | NA | NA | NA | NA | NA |
-| nsc4.utdallas.edu | NA | NA | NA | NA | NA |
+| nsc1.utdallas.edu | 38 | 20 | 1 | Tesla P100-PCIE-16GB | 125.16 |
+| nsc2.utdallas.edu | 16 | 8 | 1 | NVIDIA GeForce GTX 1080 Ti | 31.02 |
+| nsc3.utdallas.edu | 24 | 12 | 2 | Failed to initialize NVML: Driver/library version mismatch;NVML library version: 590.48 | 31.01 |
+| nsc4.utdallas.edu | 24 | 12 | 2 | NVIDIA GeForce RTX 2080 Ti;NVIDIA GeForce RTX 2080 Ti | 30.96 |
 
 ## Reliability & Utilization (all samples)
 
 | Server | Samples | Ping uptime | CUDA healthy | Mumax3 healthy | Avg CPU util. | Avg GPU util. | CPU>85% samples | GPU>90% samples |
 | ------ | ------- | ----------- | ------------ | -------------- | ------------- | ------------- | --------------- | --------------- |
-| nsc1.utdallas.edu | 3 | 0.00% | 0.00% | 0.00% | NA | NA | 0 | 0 |
-| nsc2.utdallas.edu | 3 | 0.00% | 0.00% | 0.00% | NA | NA | 0 | 0 |
-| nsc3.utdallas.edu | 3 | 0.00% | 0.00% | 0.00% | NA | NA | 0 | 0 |
-| nsc4.utdallas.edu | 3 | 0.00% | 0.00% | 0.00% | NA | NA | 0 | 0 |
+| nsc1.utdallas.edu | 3 | 100.00% | 100.00% | 100.00% | 0.33% | 0.00% | 0 | 0 |
+| nsc2.utdallas.edu | 3 | 100.00% | 100.00% | 100.00% | 33.63% | 0.00% | 1 | 0 |
+| nsc3.utdallas.edu | 3 | 100.00% | 100.00% | 0.00% | 66.80% | 0.00% | 2 | 0 |
+| nsc4.utdallas.edu | 3 | 100.00% | 100.00% | 100.00% | 0.60% | 0.00% | 0 | 0 |
 
 ## SLO Rollups
 
 | Server | Window | Ping uptime | CUDA healthy | Mumax3 healthy |
 | ------ | ------ | ----------- | ------------ | -------------- |
-| nsc1.utdallas.edu | 24h | 0.00% | 0.00% | 0.00% |
-| nsc1.utdallas.edu | 7d | 0.00% | 0.00% | 0.00% |
-| nsc1.utdallas.edu | 30d | 0.00% | 0.00% | 0.00% |
-| nsc2.utdallas.edu | 24h | 0.00% | 0.00% | 0.00% |
-| nsc2.utdallas.edu | 7d | 0.00% | 0.00% | 0.00% |
-| nsc2.utdallas.edu | 30d | 0.00% | 0.00% | 0.00% |
-| nsc3.utdallas.edu | 24h | 0.00% | 0.00% | 0.00% |
-| nsc3.utdallas.edu | 7d | 0.00% | 0.00% | 0.00% |
-| nsc3.utdallas.edu | 30d | 0.00% | 0.00% | 0.00% |
-| nsc4.utdallas.edu | 24h | 0.00% | 0.00% | 0.00% |
-| nsc4.utdallas.edu | 7d | 0.00% | 0.00% | 0.00% |
-| nsc4.utdallas.edu | 30d | 0.00% | 0.00% | 0.00% |
+| nsc1.utdallas.edu | 24h | 100.00% | 100.00% | 100.00% |
+| nsc1.utdallas.edu | 7d | 100.00% | 100.00% | 100.00% |
+| nsc1.utdallas.edu | 30d | 100.00% | 100.00% | 100.00% |
+| nsc2.utdallas.edu | 24h | 100.00% | 100.00% | 100.00% |
+| nsc2.utdallas.edu | 7d | 100.00% | 100.00% | 100.00% |
+| nsc2.utdallas.edu | 30d | 100.00% | 100.00% | 100.00% |
+| nsc3.utdallas.edu | 24h | 100.00% | 100.00% | 0.00% |
+| nsc3.utdallas.edu | 7d | 100.00% | 100.00% | 0.00% |
+| nsc3.utdallas.edu | 30d | 100.00% | 100.00% | 0.00% |
+| nsc4.utdallas.edu | 24h | 100.00% | 100.00% | 100.00% |
+| nsc4.utdallas.edu | 7d | 100.00% | 100.00% | 100.00% |
+| nsc4.utdallas.edu | 30d | 100.00% | 100.00% | 100.00% |
 
 ## Incidents & State Changes (latest 25 transitions)
 
@@ -72,26 +70,26 @@ Updated (UTC): **2026-02-11T16:17:01Z**
 
 | Timestamp (UTC) | Server | Ping | CUDA | Mumax3 | CPU util. | GPU util. | CPU(logical/physical) | GPU count | RAM GB |
 | --------------- | ------ | ---- | ---- | ------ | --------- | --------- | -------------------- | --------- | ------ |
-| 2026-02-11T15:54:57Z | nsc1.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
-| 2026-02-11T15:54:57Z | nsc2.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
-| 2026-02-11T15:54:57Z | nsc3.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
-| 2026-02-11T15:54:57Z | nsc4.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
-| 2026-02-11T15:55:27Z | nsc1.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
-| 2026-02-11T15:55:27Z | nsc2.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
-| 2026-02-11T15:55:27Z | nsc3.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
-| 2026-02-11T15:55:27Z | nsc4.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
-| 2026-02-11T16:17:01Z | nsc1.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
-| 2026-02-11T16:17:01Z | nsc2.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
-| 2026-02-11T16:17:01Z | nsc3.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
-| 2026-02-11T16:17:01Z | nsc4.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
+| 2026-02-11T15:59:21Z | nsc1.utdallas.edu | online | ok | ok | 0.40% | 0.00% | 38/20 | 1 | 125.16 |
+| 2026-02-11T15:59:21Z | nsc2.utdallas.edu | online | ok | ok | 0.30% | 0.00% | 16/8 | 1 | 31.02 |
+| 2026-02-11T15:59:21Z | nsc3.utdallas.edu | online | ok | error | 0.40% | 0.00% | 24/12 | 2 | 31.01 |
+| 2026-02-11T15:59:21Z | nsc4.utdallas.edu | online | ok | ok | 0.80% | 0.00% | 24/12 | 2 | 30.96 |
+| 2026-02-11T16:05:32Z | nsc1.utdallas.edu | online | ok | ok | 0.40% | 0.00% | 38/20 | 1 | 125.16 |
+| 2026-02-11T16:05:32Z | nsc2.utdallas.edu | online | ok | ok | 100.00% | 0.00% | 16/8 | 1 | 31.02 |
+| 2026-02-11T16:05:32Z | nsc3.utdallas.edu | online | ok | error | 100.00% | 0.00% | 24/12 | 2 | 31.01 |
+| 2026-02-11T16:05:32Z | nsc4.utdallas.edu | online | ok | ok | 0.60% | 0.00% | 24/12 | 2 | 30.96 |
+| 2026-02-11T16:14:54Z | nsc1.utdallas.edu | online | ok | ok | 0.20% | 0.00% | 38/20 | 1 | 125.16 |
+| 2026-02-11T16:14:54Z | nsc2.utdallas.edu | online | ok | ok | 0.60% | 0.00% | 16/8 | 1 | 31.02 |
+| 2026-02-11T16:14:54Z | nsc3.utdallas.edu | online | ok | error | 100.00% | 0.00% | 24/12 | 2 | 31.01 |
+| 2026-02-11T16:14:54Z | nsc4.utdallas.edu | online | ok | ok | 0.40% | 0.00% | 24/12 | 2 | 30.96 |
 
 </details>
 
 ## How checks work
 
 1. **Ping**: ICMP ping from the monitoring host.
-2. **CUDA health**: SSH + `nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits`; command stderr/failure now marks CUDA as error.
-3. **No mumax3 errors**: SSH + `mumax3 -version` (fallback to `mumax3 -v` / `mumax3`).
+2. **CUDA health**: SSH + `nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits`.
+3. **Mumax3 health**: SSH + `mumax3 -version` (fallback to `mumax3 -v` / `mumax3`).
 4. **CPU utilization**: SSH + `top` (fallback `vmstat`) parsed as active CPU%.
 5. **Hardware inventory**: SSH + `nproc`, `lscpu`, `nvidia-smi`, and `/proc/meminfo`.
 

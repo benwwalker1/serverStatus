@@ -36,10 +36,6 @@ sanitize_csv_field() {
   echo "$value"
 }
 
-is_numeric() {
-  [[ "$1" =~ ^[0-9]+(\.[0-9]+)?$ ]]
-}
-
 collect_server_status() {
   local host="$1"
   local timestamp_utc="$2"
@@ -116,68 +112,31 @@ collect_server_status() {
         vmstat 1 2 2>/dev/null | tail -n1 | awk "{printf \"%.2f\", 100-\$15}"
       fi
     ' 2>/dev/null || true)
-    if ! is_numeric "$cpu_utilization"; then
-      cpu_utilization="NA"
-    fi
+    [[ -z "$cpu_utilization" ]] && cpu_utilization="NA"
 
     cpu_count_logical=$(ssh "${SSH_OPTS[@]}" "$host" 'command -v nproc >/dev/null 2>&1 && nproc' 2>/dev/null || true)
-    if ! [[ "$cpu_count_logical" =~ ^[0-9]+$ ]]; then
-      cpu_count_logical="NA"
-    fi
+    [[ -z "$cpu_count_logical" ]] && cpu_count_logical="NA"
 
     cpu_count_physical=$(ssh "${SSH_OPTS[@]}" "$host" '
       if command -v lscpu >/dev/null 2>&1; then
         lscpu -p=Core,Socket 2>/dev/null | awk -F, "!/^#/ {seen[\$1\",\"\$2]=1} END {print length(seen)}"
       fi
     ' 2>/dev/null || true)
-    if ! [[ "$cpu_count_physical" =~ ^[0-9]+$ ]]; then
-      cpu_count_physical="NA"
-    fi
+    [[ -z "$cpu_count_physical" ]] && cpu_count_physical="NA"
 
-    local gpu_names_probe
-    gpu_names_probe=$(ssh "${SSH_OPTS[@]}" "$host" '
-      if ! command -v nvidia-smi >/dev/null 2>&1; then
-        echo "__STATUS__:missing"
-        exit 0
-      fi
-      out=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>&1)
-      rc=$?
-      if [ "$rc" -ne 0 ]; then
-        echo "__STATUS__:error"
-        echo "$out"
-        exit 0
-      fi
-      valid=$(echo "$out" | awk "NF > 0 {count += 1} END {print count + 0}")
-      if [ "$valid" -gt 0 ]; then
-        echo "__STATUS__:ok"
-        echo "$out"
-      else
-        echo "__STATUS__:error"
-        echo "$out"
-      fi
-    ' 2>/dev/null || true)
-
-    local gpu_names_status
-    gpu_names_status=$(echo "$gpu_names_probe" | head -n1)
     local gpu_names_raw
-    gpu_names_raw=$(echo "$gpu_names_probe" | tail -n +2)
-
-    if [[ "$gpu_names_status" == "__STATUS__:ok" ]]; then
+    gpu_names_raw=$(ssh "${SSH_OPTS[@]}" "$host" 'command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi --query-gpu=name --format=csv,noheader' 2>/dev/null || true)
+    if [[ -n "$gpu_names_raw" ]]; then
       gpu_count=$(echo "$gpu_names_raw" | awk 'NF>0 {count+=1} END {print count+0}')
       gpu_names=$(echo "$gpu_names_raw" | awk 'NF>0 {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $0); names[++n]=$0} END {for (i=1; i<=n; i++) printf "%s%s", names[i], (i<n?";":"")}')
       [[ -z "$gpu_names" ]] && gpu_names="NA"
-    elif [[ "$gpu_names_status" == "__STATUS__:missing" ]]; then
-      gpu_count="0"
-      gpu_names="nvidia-smi-missing"
     else
-      gpu_count="NA"
-      gpu_names="nvidia-smi-error"
+      gpu_count="0"
+      gpu_names="none"
     fi
 
     memory_total_gb=$(ssh "${SSH_OPTS[@]}" "$host" 'awk "/MemTotal/ {printf \"%.2f\", \$2/1024/1024}" /proc/meminfo 2>/dev/null' 2>/dev/null || true)
-    if ! is_numeric "$memory_total_gb"; then
-      memory_total_gb="NA"
-    fi
+    [[ -z "$memory_total_gb" ]] && memory_total_gb="NA"
   fi
 
   gpu_names=$(sanitize_csv_field "$gpu_names")
@@ -395,9 +354,7 @@ generate_readme() {
   {
     echo "# Server Status Dashboard"
     echo
-    echo "Updated (Central US): **$timestamp_central_us**"
-    echo "Updated (Central EU): **$timestamp_central_eu**"
-    echo "Updated (UTC): **$timestamp_utc**"
+    echo "Updated: **$timestamp_utc**"
     echo
     echo "## Current Fleet Status"
     echo
@@ -446,8 +403,8 @@ generate_readme() {
     echo
     echo "1. **Ping**: ICMP ping from the monitoring host."
     echo "2. **CUDA health**: SSH + \
-\`nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits\`; command stderr/failure now marks CUDA as error."
-    echo "3. **No mumax3 errors**: SSH + \
+\`nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits\`."
+    echo "3. **Mumax3 health**: SSH + \
 \`mumax3 -version\` (fallback to \
 \`mumax3 -v\` / \
 \`mumax3\`)."
@@ -486,7 +443,7 @@ run_cycle() {
   done
 
   generate_plots
-  generate_readme "$timestamp_utc" "$timestamp_epoch" "$cycle_file"
+  generate_readme "$timestamp_utc" "$cycle_file"
   rm -f "$cycle_file"
 
   if [[ "${SKIP_GIT:-0}" != "1" ]]; then
