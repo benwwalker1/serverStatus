@@ -17,14 +17,14 @@
 <line x1="70" y1="35" x2="70" y2="305" stroke="#999"/>
 <line x1="70" y1="305" x2="1180" y2="305" stroke="#999"/>
 <text x="70.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:38</text>
-<text x="347.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:52</text>
-<text x="625.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:07</text>
-<text x="902.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:22</text>
-<text x="1180.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:37</text>
-<polyline fill="none" stroke="#1f77b4" stroke-opacity="0.95" stroke-width="2" points="170.26,35.00 270.83,35.00 370.78,35.00 471.35,35.00 572.54,35.00 671.87,35.00 772.44,35.00 881.08,35.00 980.72,35.00 1080.36,35.00 1180.00,35.00"/>
-<polyline fill="none" stroke="#1f77b4" stroke-opacity="0.80" stroke-width="2" points="70.00,35.00 170.26,35.00 270.83,35.00 370.78,35.00 471.35,35.00 572.54,35.00 671.87,35.00 772.44,35.00 881.08,35.00 980.72,35.00 1080.36,35.00 1180.00,35.00"/>
-<polyline fill="none" stroke="#1f77b4" stroke-opacity="0.65" stroke-width="2" points="70.00,35.00 170.26,35.00 270.83,35.00 370.78,35.00 471.35,35.00 572.54,35.00 671.87,35.00 772.44,35.00 881.08,35.00 980.72,35.00 1080.36,35.00 1180.00,35.00"/>
-<polyline fill="none" stroke="#1f77b4" stroke-opacity="0.50" stroke-width="2" points="70.00,35.00 170.26,35.00 270.83,35.00 370.78,35.00 471.35,35.00 572.54,35.00 671.87,35.00 772.44,35.00 881.08,35.00 980.72,35.00 1080.36,35.00 1180.00,35.00"/>
+<text x="347.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:54</text>
+<text x="625.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:10</text>
+<text x="902.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:26</text>
+<text x="1180.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:43</text>
+<polyline fill="none" stroke="#1f77b4" stroke-opacity="0.95" stroke-width="2" points="161.84,35.00 253.96,35.00 345.51,35.00 437.63,35.00 530.32,35.00 621.30,35.00 713.42,35.00 812.94,35.00 904.21,35.00 995.47,35.00 1086.74,35.00 1180.00,35.00"/>
+<polyline fill="none" stroke="#1f77b4" stroke-opacity="0.80" stroke-width="2" points="70.00,35.00 161.84,35.00 253.96,35.00 345.51,35.00 437.63,35.00 530.32,35.00 621.30,35.00 713.42,35.00 812.94,35.00 904.21,35.00 995.47,35.00 1086.74,35.00 1180.00,35.00"/>
+<polyline fill="none" stroke="#1f77b4" stroke-opacity="0.65" stroke-width="2" points="70.00,35.00 161.84,35.00 253.96,35.00 345.51,35.00 437.63,35.00 530.32,35.00 621.30,35.00 713.42,35.00 812.94,35.00 904.21,35.00 995.47,35.00 1086.74,35.00 1180.00,35.00"/>
+<polyline fill="none" stroke="#1f77b4" stroke-opacity="0.50" stroke-width="2" points="70.00,35.00 161.84,35.00 253.96,35.00 345.51,35.00 437.63,35.00 530.32,35.00 621.30,35.00 713.42,35.00 812.94,35.00 904.21,35.00 995.47,35.00 1086.74,35.00 1180.00,35.00"/>
 <rect x="70" y="332" width="12" height="12" fill="#1f77b4" fill-opacity="0.95"/>
 <text x="88" y="342" font-size="11" fill="#333" font-family="Arial, Helvetica, sans-serif">nsc1.utdallas.edu</text>
 <rect x="350" y="332" width="12" height="12" fill="#1f77b4" fill-opacity="0.80"/>
