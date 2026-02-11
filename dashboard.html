@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Server Uptime Dashboard</title>
+  <style>
+    body {{ font-family: Arial, Helvetica, sans-serif; margin: 20px; }}
+    .controls {{ display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }}
+    .range-buttons button {{ margin-right: 6px; }}
+    #legend {{ margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 12px; }}
+    .legend-item {{ font-size: 14px; }}
+    .swatch {{ display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: middle; }}
+    #chartWrap {{ border: 1px solid #ddd; padding: 8px; }}
+    svg {{ width: 100%; height: 480px; background: #fff; }}
+    .axis, .grid {{ stroke: #bbb; stroke-width: 1; }}
+    .grid {{ stroke-dasharray: 2 3; }}
+    .label {{ font-size: 12px; fill: #333; }}
+    .title {{ font-size: 16px; font-weight: bold; }}
+  </style>
+</head>
+<body>
+  <h1>Server Uptime & Utilization Dashboard</h1>
+  <p>Self-contained interactive dashboard (no external JS/CDN). Windows: 1 day, 1 week, 1 month, 6 months.</p>
+
+  <div class="controls">
+    <label for="metric"><strong>Metric:</strong></label>
+    <select id="metric">
+      <option value="ping">Ping uptime</option>
+      <option value="cuda">CUDA health uptime</option>
+      <option value="mumax3">Mumax3 health uptime</option>
+      <option value="cpu_utilization">CPU utilization</option>
+      <option value="gpu_utilization">GPU utilization</option>
+    </select>
+
+    <div class="range-buttons">
+      <strong>Window:</strong>
+      <button data-range="1d">1d</button>
+      <button data-range="1w">1w</button>
+      <button data-range="1m">1m</button>
+      <button data-range="6m">6m</button>
+      <button data-range="all">all</button>
+    </div>
+  </div>
+
+  <div id="chartWrap">
+    <svg id="chart" viewBox="0 0 1000 480" preserveAspectRatio="none"></svg>
+  </div>
+  <div id="legend"></div>
+
+  <script>
+    const data = {"nsc1.utdallas.edu": {"time": [1770823232000, 1770823248000, 1770823931000, 1770823943000], "ping": [0, 0, 0, 0], "cuda": [0, 0, 0, 0], "mumax3": [0, 0, 0, 0], "cpu_utilization": [null, null, null, null], "gpu_utilization": [null, null, null, null]}, "nsc2.utdallas.edu": {"time": [1770823232000, 1770823248000, 1770823931000, 1770823943000], "ping": [0, 0, 0, 0], "cuda": [0, 0, 0, 0], "mumax3": [0, 0, 0, 0], "cpu_utilization": [null, null, null, null], "gpu_utilization": [null, null, null, null]}, "nsc3.utdallas.edu": {"time": [1770823232000, 1770823248000, 1770823931000, 1770823943000], "ping": [0, 0, 0, 0], "cuda": [0, 0, 0, 0], "mumax3": [0, 0, 0, 0], "cpu_utilization": [null, null, null, null], "gpu_utilization": [null, null, null, null]}, "nsc4.utdallas.edu": {"time": [1770823232000, 1770823248000, 1770823931000, 1770823943000], "ping": [0, 0, 0, 0], "cuda": [0, 0, 0, 0], "mumax3": [0, 0, 0, 0], "cpu_utilization": [null, null, null, null], "gpu_utilization": [null, null, null, null]}};
+    const servers = ["nsc1.utdallas.edu", "nsc2.utdallas.edu", "nsc3.utdallas.edu", "nsc4.utdallas.edu"];
+
+    const colors = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2','#7f7f7f'];
+    const metricNames = {
+      ping: 'Ping uptime (per sample: 0/100)',
+      cuda: 'CUDA healthy uptime (per sample: 0/100)',
+      mumax3: 'Mumax3 healthy uptime (per sample: 0/100)',
+      cpu_utilization: 'CPU utilization (%)',
+      gpu_utilization: 'GPU utilization (%)'
+    };
+
+    const rangeMs = {
+      '1d': 24*60*60*1000,
+      '1w': 7*24*60*60*1000,
+      '1m': 30*24*60*60*1000,
+      '6m': 180*24*60*60*1000,
+      'all': null
+    };
+
+    const state = { metric: 'ping', range: '1d' };
+    const svg = document.getElementById('chart');
+
+    function mk(tag, attrs={}) {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k, v));
+      return el;
+    }
+
+    function getSeries(server, metric) {
+      const t = data[server]?.time || [];
+      const y = data[server]?.[metric] || [];
+      return t.map((ts, i) => ({ ts, y: y[i] })).filter(p => p.y !== null && p.y !== undefined);
+    }
+
+    function filterByRange(points, range) {
+      if (!points.length) return points;
+      if (range === 'all') return points;
+      const maxTs = Math.max(...servers.flatMap(s => (data[s]?.time || [])));
+      const cutoff = maxTs - rangeMs[range];
+      return points.filter(p => p.ts >= cutoff);
+    }
+
+    function draw() {
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+      const width = 1000, height = 480;
+      const margin = { left: 70, right: 20, top: 35, bottom: 55 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+
+      const allSeries = servers.map(s => filterByRange(getSeries(s, state.metric), state.range));
+      const flattened = allSeries.flat();
+
+      const title = mk('text', { x: width/2, y: 22, 'text-anchor': 'middle', class: 'title' });
+      title.textContent = metricNames[state.metric] + ' [' + state.range + ']';
+      svg.appendChild(title);
+
+      if (!flattened.length) {
+        const empty = mk('text', { x: width/2, y: height/2, 'text-anchor': 'middle', class: 'label' });
+        empty.textContent = 'No data for selected range.';
+        svg.appendChild(empty);
+        document.getElementById('legend').innerHTML = '';
+        return;
+      }
+
+      const minX = Math.min(...flattened.map(p => p.ts));
+      const maxX = Math.max(...flattened.map(p => p.ts));
+      const minY = 0;
+      const maxY = 100;
+
+      const xScale = ts => margin.left + ((ts - minX) / Math.max(1, (maxX - minX))) * innerW;
+      const yScale = y => margin.top + (1 - ((y - minY) / Math.max(1, (maxY - minY)))) * innerH;
+
+      for (let i=0; i<=5; i++) {
+        const y = margin.top + (innerH * i / 5);
+        svg.appendChild(mk('line', { x1: margin.left, y1: y, x2: width - margin.right, y2: y, class: 'grid' }));
+        const lbl = mk('text', { x: margin.left - 10, y: y + 4, 'text-anchor': 'end', class: 'label' });
+        lbl.textContent = String(Math.round(maxY - (maxY-minY)*i/5));
+        svg.appendChild(lbl);
+      }
+
+      svg.appendChild(mk('line', { x1: margin.left, y1: margin.top, x2: margin.left, y2: height-margin.bottom, class: 'axis' }));
+      svg.appendChild(mk('line', { x1: margin.left, y1: height-margin.bottom, x2: width-margin.right, y2: height-margin.bottom, class: 'axis' }));
+
+      for (let i=0; i<=4; i++) {
+        const ts = minX + ((maxX-minX) * i / 4);
+        const x = xScale(ts);
+        const d = new Date(ts);
+        const lbl = mk('text', { x, y: height - margin.bottom + 18, 'text-anchor': 'middle', class: 'label' });
+        lbl.textContent = d.toISOString().slice(0,16).replace('T',' ');
+        svg.appendChild(lbl);
+      }
+
+      let legend = '';
+      allSeries.forEach((series, idx) => {
+        if (!series.length) return;
+        const color = colors[idx % colors.length];
+        const points = series.map(p => `${xScale(p.ts)},${yScale(p.y)}`).join(' ');
+        svg.appendChild(mk('polyline', { points, fill: 'none', stroke: color, 'stroke-width': 2 }));
+        legend += `<span class="legend-item"><span class="swatch" style="background:${color}"></span>${servers[idx]}</span>`;
+      });
+      document.getElementById('legend').innerHTML = legend;
+    }
+
+    document.getElementById('metric').addEventListener('change', e => { state.metric = e.target.value; draw(); });
+    document.querySelectorAll('button[data-range]').forEach(btn => {
+      btn.addEventListener('click', () => { state.range = btn.dataset.range; draw(); });
+    });
+
+    draw();
+  </script>
+</body>
+</html>
