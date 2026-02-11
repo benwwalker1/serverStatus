@@ -46,6 +46,25 @@ Interactive dashboard: [dashboard.html](./dashboard.html)
 | nsc2.utdallas.edu | 2 | 0.00% | 0.00% | 0.00% | NA | NA |
 | nsc3.utdallas.edu | 2 | 0.00% | 0.00% | 0.00% | NA | NA |
 | nsc4.utdallas.edu | 2 | 0.00% | 0.00% | 0.00% | NA | NA |
+Updated: **2026-02-11T15:13:35Z**
+
+## Latest Check
+
+| Server | Ping | CUDA | Mumax3 | GPU util. |
+| ------ | ---- | ---- | ------ | --------- |
+| nsc1.utdallas.edu | :+1: (online) | :+1: (ok) | :+1: (ok) | 0.00% |
+| nsc2.utdallas.edu | :+1: (online) | :+1: (ok) | :+1: (ok) | 0.00% |
+| nsc3.utdallas.edu | :+1: (online) | :+1: (ok) | :x: (error) | 0.00% |
+| nsc4.utdallas.edu | :+1: (online) | :+1: (ok) | :+1: (ok) | 0.00% |
+
+## Historical Reliability (all samples)
+
+| Server | Samples | Ping uptime | CUDA healthy | Mumax3 healthy | Avg GPU util. |
+| ------ | ------- | ----------- | ------------ | -------------- | ------------- |
+| nsc1.utdallas.edu | 5 | 20.00% | 20.00% | 20.00% | 0.00% |
+| nsc2.utdallas.edu | 5 | 20.00% | 20.00% | 20.00% | 0.00% |
+| nsc3.utdallas.edu | 5 | 20.00% | 20.00% | 0.00% | 0.00% |
+| nsc4.utdallas.edu | 5 | 20.00% | 20.00% | 20.00% | 0.00% |
 
 ## Recent Samples
 
