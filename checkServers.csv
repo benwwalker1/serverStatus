@@ -1,19 +1,4 @@
-timestamp_utc,timestamp_epoch,server,ping,cuda_ok,mumax3_ok,gpu_utilization,cpu_utilization,cpu_count_logical,cpu_count_physical,gpu_count,gpu_names,memory_total_gb
-2026-02-11T15:54:57Z,1770825297,nsc1.utdallas.edu,offline,unknown,unknown,NA,NA,NA,NA,NA,NA,NA
-2026-02-11T15:54:57Z,1770825297,nsc2.utdallas.edu,offline,unknown,unknown,NA,NA,NA,NA,NA,NA,NA
-2026-02-11T15:54:57Z,1770825297,nsc3.utdallas.edu,offline,unknown,unknown,NA,NA,NA,NA,NA,NA,NA
-2026-02-11T15:54:57Z,1770825297,nsc4.utdallas.edu,offline,unknown,unknown,NA,NA,NA,NA,NA,NA,NA
-2026-02-11T15:55:27Z,1770825327,nsc1.utdallas.edu,offline,unknown,unknown,NA,NA,NA,NA,NA,NA,NA
-2026-02-11T15:55:27Z,1770825327,nsc2.utdallas.edu,offline,unknown,unknown,NA,NA,NA,NA,NA,NA,NA
-2026-02-11T15:55:27Z,1770825327,nsc3.utdallas.edu,offline,unknown,unknown,NA,NA,NA,NA,NA,NA,NA
-2026-02-11T15:55:27Z,1770825327,nsc4.utdallas.edu,offline,unknown,unknown,NA,NA,NA,NA,NA,NA,NA
-2026-02-11T16:17:01Z,1770826621,nsc1.utdallas.edu,offline,unknown,unknown,NA,NA,NA,NA,NA,NA,NA
-2026-02-11T16:17:01Z,1770826621,nsc2.utdallas.edu,offline,unknown,unknown,NA,NA,NA,NA,NA,NA,NA
-2026-02-11T16:17:01Z,1770826621,nsc3.utdallas.edu,offline,unknown,unknown,NA,NA,NA,NA,NA,NA,NA
-2026-02-11T16:17:01Z,1770826621,nsc4.utdallas.edu,offline,unknown,unknown,NA,NA,NA,NA,NA,NA,NA
-2026-02-11T16:26:53Z,1770827213,nsc1.utdallas.edu,online,error,ok,NA,0.40,38,20,1,Tesla P100-PCIE-16GB,125.16
-2026-02-11T16:26:53Z,1770827213,nsc2.utdallas.edu,online,error,ok,NA,0.90,16,8,1,NVIDIA GeForce GTX 1080 Ti,31.02
-2026-02-11T16:31:36Z,1770827496,nsc1.utdallas.edu,online,ok,ok,0.00,0.20,38,20,1,Tesla P100-PCIE-16GB,125.16
-2026-02-11T16:31:36Z,1770827496,nsc2.utdallas.edu,online,ok,ok,0.00,0.30,16,8,1,NVIDIA GeForce GTX 1080 Ti,31.02
-2026-02-11T16:31:36Z,1770827496,nsc3.utdallas.edu,online,error,error,NA,0.20,24,12,2,Failed to initialize NVML: Driver/library version mismatch;NVML library version: 590.48,31.01
-2026-02-11T16:31:36Z,1770827496,nsc4.utdallas.edu,online,ok,ok,0.00,0.60,24,12,2,NVIDIA GeForce RTX 2080 Ti;NVIDIA GeForce RTX 2080 Ti,30.96
+timestamp_utc,timestamp_epoch,server,ping,cuda_ok,mumax3_ok,gpu_utilization,cpu_utilization,cpu_count_logical,cpu_count_physical,gpu_count,gpu_names,memory_total_gb2026-02-11T16:38:02Z,1770827882,nsc1.utdallas.edu,online,ok,ok,0.00,0.10,38,20,1,Tesla P100-PCIE-16GB,125.16
+2026-02-11T16:38:02Z,1770827882,nsc2.utdallas.edu,online,ok,ok,0.00,0.60,16,8,1,NVIDIA GeForce GTX 1080 Ti,31.02
+2026-02-11T16:38:02Z,1770827882,nsc3.utdallas.edu,online,error,error,NA,100.00,24,12,2,Failed to initialize NVML: Driver/library version mismatch;NVML library version: 590.48,31.01
+2026-02-11T16:38:02Z,1770827882,nsc4.utdallas.edu,online,ok,ok,0.00,0.80,24,12,2,NVIDIA GeForce RTX 2080 Ti;NVIDIA GeForce RTX 2080 Ti,30.96
