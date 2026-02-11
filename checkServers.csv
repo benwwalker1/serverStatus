@@ -23,3 +23,7 @@ timestamp_utc,timestamp_epoch,server,ping,cuda_ok,mumax3_ok,gpu_utilization
 2026-02-11T15:26:03Z,1770823563,nsc2.utdallas.edu,online,ok,ok,0.00
 2026-02-11T15:26:03Z,1770823563,nsc3.utdallas.edu,online,ok,error,0.00
 2026-02-11T15:26:03Z,1770823563,nsc4.utdallas.edu,online,ok,ok,0.00
+2026-02-11T15:41:47Z,1770824507,nsc1.utdallas.edu,online,ok,ok,0.00
+2026-02-11T15:41:47Z,1770824507,nsc2.utdallas.edu,online,ok,ok,0.00
+2026-02-11T15:41:47Z,1770824507,nsc3.utdallas.edu,online,ok,error,0.00
+2026-02-11T15:41:47Z,1770824507,nsc4.utdallas.edu,online,ok,ok,0.00

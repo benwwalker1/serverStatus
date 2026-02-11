@@ -1,6 +1,6 @@
 # Server Status Dashboard
 
-Updated: **2026-02-11T15:26:03Z**
+Updated: **2026-02-11T15:41:47Z**
 
 ## Latest Check
 
@@ -15,10 +15,10 @@ Updated: **2026-02-11T15:26:03Z**
 
 | Server | Samples | Ping uptime | CUDA healthy | Mumax3 healthy | Avg GPU util. |
 | ------ | ------- | ----------- | ------------ | -------------- | ------------- |
-| nsc1.utdallas.edu | 6 | 33.33% | 33.33% | 33.33% | 0.00% |
-| nsc2.utdallas.edu | 6 | 33.33% | 33.33% | 33.33% | 0.00% |
-| nsc3.utdallas.edu | 6 | 33.33% | 33.33% | 0.00% | 0.00% |
-| nsc4.utdallas.edu | 6 | 33.33% | 33.33% | 33.33% | 0.00% |
+| nsc1.utdallas.edu | 7 | 42.86% | 42.86% | 42.86% | 0.00% |
+| nsc2.utdallas.edu | 7 | 42.86% | 42.86% | 42.86% | 0.00% |
+| nsc3.utdallas.edu | 7 | 42.86% | 42.86% | 0.00% | 0.00% |
+| nsc4.utdallas.edu | 7 | 42.86% | 42.86% | 42.86% | 0.00% |
 
 ## Recent Samples
 
@@ -51,6 +51,10 @@ Updated: **2026-02-11T15:26:03Z**
 | 2026-02-11T15:26:03Z | nsc2.utdallas.edu | online | ok | ok | 0.00 |
 | 2026-02-11T15:26:03Z | nsc3.utdallas.edu | online | ok | error | 0.00 |
 | 2026-02-11T15:26:03Z | nsc4.utdallas.edu | online | ok | ok | 0.00 |
+| 2026-02-11T15:41:47Z | nsc1.utdallas.edu | online | ok | ok | 0.00 |
+| 2026-02-11T15:41:47Z | nsc2.utdallas.edu | online | ok | ok | 0.00 |
+| 2026-02-11T15:41:47Z | nsc3.utdallas.edu | online | ok | error | 0.00 |
+| 2026-02-11T15:41:47Z | nsc4.utdallas.edu | online | ok | ok | 0.00 |
 
 </details>
 
