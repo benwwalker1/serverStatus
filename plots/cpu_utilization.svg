@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-label="CPU Utilization (%)">
+<defs>
+<linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#f8fafc"/>
+<stop offset="100%" stop-color="#ffffff"/>
+</linearGradient>
+<filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+<feDropShadow dx="0" dy="1" stdDeviation="1.4" flood-color="#94a3b8" flood-opacity="0.25"/>
+</filter>
+</defs>
+<rect width="100%" height="100%" fill="url(#bgGrad)"/>
+<text x="600.0" y="24" text-anchor="middle" font-size="17" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="700" fill="#0f172a">CPU Utilization (%)</text>
+<text x="600.0" y="42" text-anchor="middle" font-size="11" font-family="Inter, Segoe UI, Arial, sans-serif" fill="#64748b">GitHub static chart · range 0-100%</text>
+<text x="600.0" y="200.0" text-anchor="middle" font-size="14" font-family="Inter, Segoe UI, Arial, sans-serif" fill="#334155">No data available.</text>
+</svg>
