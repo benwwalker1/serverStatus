@@ -17,14 +17,14 @@
 <line x1="70" y1="35" x2="70" y2="305" stroke="#999"/>
 <line x1="70" y1="305" x2="1180" y2="305" stroke="#999"/>
 <text x="70.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:38</text>
-<text x="347.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:43</text>
-<text x="625.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:48</text>
-<text x="902.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:54</text>
-<text x="1180.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:59</text>
-<polyline fill="none" stroke="#d62728" stroke-opacity="0.95" stroke-width="2" points="347.29,304.46 625.43,298.79 901.86,296.90 1180.00,303.92"/>
-<polyline fill="none" stroke="#d62728" stroke-opacity="0.80" stroke-width="2" points="70.00,303.38 347.29,304.19 625.43,302.57 901.86,303.38 1180.00,304.19"/>
-<polyline fill="none" stroke="#d62728" stroke-opacity="0.65" stroke-width="2" points="70.00,35.00 347.29,304.46 625.43,304.46 901.86,302.30 1180.00,304.46"/>
-<polyline fill="none" stroke="#d62728" stroke-opacity="0.50" stroke-width="2" points="70.00,302.84 347.29,302.84 625.43,303.92 901.86,303.92 1180.00,303.92"/>
+<text x="347.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:44</text>
+<text x="625.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:51</text>
+<text x="902.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:58</text>
+<text x="1180.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:05</text>
+<polyline fill="none" stroke="#d62728" stroke-opacity="0.95" stroke-width="2" points="291.45,304.46 513.59,298.79 734.35,296.90 956.49,303.92 1180.00,304.73"/>
+<polyline fill="none" stroke="#d62728" stroke-opacity="0.80" stroke-width="2" points="70.00,303.38 291.45,304.19 513.59,302.57 734.35,303.38 956.49,304.19 1180.00,287.72"/>
+<polyline fill="none" stroke="#d62728" stroke-opacity="0.65" stroke-width="2" points="70.00,35.00 291.45,304.46 513.59,304.46 734.35,302.30 956.49,304.46 1180.00,303.38"/>
+<polyline fill="none" stroke="#d62728" stroke-opacity="0.50" stroke-width="2" points="70.00,302.84 291.45,302.84 513.59,303.92 734.35,303.92 956.49,303.92 1180.00,303.38"/>
 <rect x="70" y="332" width="12" height="12" fill="#d62728" fill-opacity="0.95"/>
 <text x="88" y="342" font-size="11" fill="#333" font-family="Arial, Helvetica, sans-serif">nsc1.utdallas.edu</text>
 <rect x="350" y="332" width="12" height="12" fill="#d62728" fill-opacity="0.80"/>
