@@ -17,14 +17,14 @@
 <line x1="70" y1="35" x2="70" y2="305" stroke="#999"/>
 <line x1="70" y1="305" x2="1180" y2="305" stroke="#999"/>
 <text x="70.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:38</text>
-<text x="347.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:54</text>
-<text x="625.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:10</text>
-<text x="902.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:26</text>
-<text x="1180.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:43</text>
-<polyline fill="none" stroke="#d62728" stroke-opacity="0.95" stroke-width="2" points="161.84,304.46 253.96,298.79 345.51,296.90 437.63,303.92 530.32,304.73 621.30,304.46 713.42,303.92 812.94,304.73 904.21,303.92 995.47,304.46 1086.74,303.92 1180.00,304.46"/>
-<polyline fill="none" stroke="#d62728" stroke-opacity="0.80" stroke-width="2" points="70.00,303.38 161.84,304.19 253.96,302.57 345.51,303.38 437.63,304.19 530.32,287.72 621.30,303.38 713.42,304.19 812.94,304.19 904.21,303.38 995.47,303.38 1086.74,304.19 1180.00,304.19"/>
-<polyline fill="none" stroke="#d62728" stroke-opacity="0.65" stroke-width="2" points="70.00,35.00 161.84,304.46 253.96,304.46 345.51,302.30 437.63,304.46 530.32,303.38 621.30,304.46 713.42,304.46 812.94,35.00 904.21,304.46 995.47,304.46 1086.74,303.92 1180.00,303.92"/>
-<polyline fill="none" stroke="#d62728" stroke-opacity="0.50" stroke-width="2" points="70.00,302.84 161.84,302.84 253.96,303.92 345.51,303.92 437.63,303.92 530.32,303.38 621.30,303.92 713.42,302.57 812.94,303.38 904.21,302.84 995.47,303.92 1086.74,303.38 1180.00,302.84"/>
+<text x="347.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:55</text>
+<text x="625.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:13</text>
+<text x="902.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:30</text>
+<text x="1180.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:48</text>
+<polyline fill="none" stroke="#d62728" stroke-opacity="0.95" stroke-width="2" points="154.86,304.46 239.98,298.79 324.58,296.90 409.70,303.92 495.35,304.73 579.42,304.46 664.54,303.92 756.49,304.73 840.83,303.92 925.16,304.46 1009.49,303.92 1095.67,304.46 1180.00,304.46"/>
+<polyline fill="none" stroke="#d62728" stroke-opacity="0.80" stroke-width="2" points="70.00,303.38 154.86,304.19 239.98,302.57 324.58,303.38 409.70,304.19 495.35,287.72 579.42,303.38 664.54,304.19 756.49,304.19 840.83,303.38 925.16,303.38 1009.49,304.19 1095.67,304.19 1180.00,304.19"/>
+<polyline fill="none" stroke="#d62728" stroke-opacity="0.65" stroke-width="2" points="70.00,35.00 154.86,304.46 239.98,304.46 324.58,302.30 409.70,304.46 495.35,303.38 579.42,304.46 664.54,304.46 756.49,35.00 840.83,304.46 925.16,304.46 1009.49,303.92 1095.67,303.92 1180.00,304.46"/>
+<polyline fill="none" stroke="#d62728" stroke-opacity="0.50" stroke-width="2" points="70.00,302.84 154.86,302.84 239.98,303.92 324.58,303.92 409.70,303.92 495.35,303.38 579.42,303.92 664.54,302.57 756.49,303.38 840.83,302.84 925.16,303.92 1009.49,303.38 1095.67,302.84 1180.00,303.38"/>
 <rect x="70" y="332" width="12" height="12" fill="#d62728" fill-opacity="0.95"/>
 <text x="88" y="342" font-size="11" fill="#333" font-family="Arial, Helvetica, sans-serif">nsc1.utdallas.edu</text>
 <rect x="350" y="332" width="12" height="12" fill="#d62728" fill-opacity="0.80"/>
