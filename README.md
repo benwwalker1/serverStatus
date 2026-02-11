@@ -1,73 +1,95 @@
 # Server Status Dashboard
 
-Updated: **2026-02-11T15:41:47Z**
+Updated: **2026-02-11T15:55:27Z**
 
-## Latest Check
+## Current Fleet Status
 
-| Server | Ping | CUDA | Mumax3 | GPU util. |
-| ------ | ---- | ---- | ------ | --------- |
-| nsc1.utdallas.edu | :+1: (online) | :+1: (ok) | :+1: (ok) | 0.00% |
-| nsc2.utdallas.edu | :+1: (online) | :+1: (ok) | :+1: (ok) | 0.00% |
-| nsc3.utdallas.edu | :+1: (online) | :+1: (ok) | :x: (error) | 0.00% |
-| nsc4.utdallas.edu | :+1: (online) | :+1: (ok) | :+1: (ok) | 0.00% |
+| Server | Ping | CUDA | Mumax3 | CPU util. | GPU util. | CPU(logical/physical) | GPU count |
+| ------ | ---- | ---- | ------ | --------- | --------- | -------------------- | --------- |
+| nsc1.utdallas.edu | :x: offline | :grey_question: unknown | :grey_question: unknown | NA | NA | NA/NA | NA |
+| nsc2.utdallas.edu | :x: offline | :grey_question: unknown | :grey_question: unknown | NA | NA | NA/NA | NA |
+| nsc3.utdallas.edu | :x: offline | :grey_question: unknown | :grey_question: unknown | NA | NA | NA/NA | NA |
+| nsc4.utdallas.edu | :x: offline | :grey_question: unknown | :grey_question: unknown | NA | NA | NA/NA | NA |
 
-## Historical Reliability (all samples)
+## Hardware Inventory (latest known)
 
-| Server | Samples | Ping uptime | CUDA healthy | Mumax3 healthy | Avg GPU util. |
-| ------ | ------- | ----------- | ------------ | -------------- | ------------- |
-| nsc1.utdallas.edu | 7 | 42.86% | 42.86% | 42.86% | 0.00% |
-| nsc2.utdallas.edu | 7 | 42.86% | 42.86% | 42.86% | 0.00% |
-| nsc3.utdallas.edu | 7 | 42.86% | 42.86% | 0.00% | 0.00% |
-| nsc4.utdallas.edu | 7 | 42.86% | 42.86% | 42.86% | 0.00% |
+| Server | Logical CPUs | Physical CPUs | GPU count | GPU model(s) | RAM total (GB) |
+| ------ | ------------ | ------------- | --------- | ------------ | -------------- |
+| nsc1.utdallas.edu | NA | NA | NA | NA | NA |
+| nsc2.utdallas.edu | NA | NA | NA | NA | NA |
+| nsc3.utdallas.edu | NA | NA | NA | NA | NA |
+| nsc4.utdallas.edu | NA | NA | NA | NA | NA |
+
+## Reliability & Utilization (all samples)
+
+| Server | Samples | Ping uptime | CUDA healthy | Mumax3 healthy | Avg CPU util. | Avg GPU util. | CPU>85% samples | GPU>90% samples |
+| ------ | ------- | ----------- | ------------ | -------------- | ------------- | ------------- | --------------- | --------------- |
+| nsc1.utdallas.edu | 2 | 0.00% | 0.00% | 0.00% | NA | NA | 0 | 0 |
+| nsc2.utdallas.edu | 2 | 0.00% | 0.00% | 0.00% | NA | NA | 0 | 0 |
+| nsc3.utdallas.edu | 2 | 0.00% | 0.00% | 0.00% | NA | NA | 0 | 0 |
+| nsc4.utdallas.edu | 2 | 0.00% | 0.00% | 0.00% | NA | NA | 0 | 0 |
+
+## SLO Rollups
+
+| Server | Window | Ping uptime | CUDA healthy | Mumax3 healthy |
+| ------ | ------ | ----------- | ------------ | -------------- |
+| nsc1.utdallas.edu | 24h | 0.00% | 0.00% | 0.00% |
+| nsc1.utdallas.edu | 7d | 0.00% | 0.00% | 0.00% |
+| nsc1.utdallas.edu | 30d | 0.00% | 0.00% | 0.00% |
+| nsc2.utdallas.edu | 24h | 0.00% | 0.00% | 0.00% |
+| nsc2.utdallas.edu | 7d | 0.00% | 0.00% | 0.00% |
+| nsc2.utdallas.edu | 30d | 0.00% | 0.00% | 0.00% |
+| nsc3.utdallas.edu | 24h | 0.00% | 0.00% | 0.00% |
+| nsc3.utdallas.edu | 7d | 0.00% | 0.00% | 0.00% |
+| nsc3.utdallas.edu | 30d | 0.00% | 0.00% | 0.00% |
+| nsc4.utdallas.edu | 24h | 0.00% | 0.00% | 0.00% |
+| nsc4.utdallas.edu | 7d | 0.00% | 0.00% | 0.00% |
+| nsc4.utdallas.edu | 30d | 0.00% | 0.00% | 0.00% |
+
+## Incidents & State Changes (latest 25 transitions)
+
+| Timestamp (UTC) | Server | Signal | Transition |
+| --------------- | ------ | ------ | ---------- |
+
+## Historical Plots
+
+![Ping uptime plot](plots/ping.svg)
+
+![CUDA health plot](plots/cuda_ok.svg)
+
+![Mumax3 health plot](plots/mumax3_ok.svg)
+
+![CPU utilization plot](plots/cpu_utilization.svg)
+
+![GPU utilization plot](plots/gpu_utilization.svg)
 
 ## Recent Samples
 
 <details>
-<summary>Expand to view the latest 40 samples</summary>
+<summary>Expand to view the latest 60 samples</summary>
 
-| Timestamp (UTC) | Server | Ping | CUDA | Mumax3 | GPU util. |
-| --------------- | ------ | ---- | ---- | ------ | --------- |
-| 2026-02-11T15:08:35Z | nsc1.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:08:35Z | nsc2.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:08:35Z | nsc3.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:08:35Z | nsc4.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:08:58Z | nsc1.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:08:58Z | nsc2.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:08:58Z | nsc3.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:08:58Z | nsc4.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:09:12Z | nsc1.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:09:12Z | nsc2.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:09:12Z | nsc3.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:09:12Z | nsc4.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:09:30Z | nsc1.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:09:30Z | nsc2.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:09:30Z | nsc3.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:09:30Z | nsc4.utdallas.edu | offline | unknown | unknown | NA |
-| 2026-02-11T15:13:35Z | nsc1.utdallas.edu | online | ok | ok | 0.00 |
-| 2026-02-11T15:13:35Z | nsc2.utdallas.edu | online | ok | ok | 0.00 |
-| 2026-02-11T15:13:35Z | nsc3.utdallas.edu | online | ok | error | 0.00 |
-| 2026-02-11T15:13:35Z | nsc4.utdallas.edu | online | ok | ok | 0.00 |
-| 2026-02-11T15:26:03Z | nsc1.utdallas.edu | online | ok | ok | 0.00 |
-| 2026-02-11T15:26:03Z | nsc2.utdallas.edu | online | ok | ok | 0.00 |
-| 2026-02-11T15:26:03Z | nsc3.utdallas.edu | online | ok | error | 0.00 |
-| 2026-02-11T15:26:03Z | nsc4.utdallas.edu | online | ok | ok | 0.00 |
-| 2026-02-11T15:41:47Z | nsc1.utdallas.edu | online | ok | ok | 0.00 |
-| 2026-02-11T15:41:47Z | nsc2.utdallas.edu | online | ok | ok | 0.00 |
-| 2026-02-11T15:41:47Z | nsc3.utdallas.edu | online | ok | error | 0.00 |
-| 2026-02-11T15:41:47Z | nsc4.utdallas.edu | online | ok | ok | 0.00 |
+| Timestamp (UTC) | Server | Ping | CUDA | Mumax3 | CPU util. | GPU util. | CPU(logical/physical) | GPU count | RAM GB |
+| --------------- | ------ | ---- | ---- | ------ | --------- | --------- | -------------------- | --------- | ------ |
+| 2026-02-11T15:54:57Z | nsc1.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
+| 2026-02-11T15:54:57Z | nsc2.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
+| 2026-02-11T15:54:57Z | nsc3.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
+| 2026-02-11T15:54:57Z | nsc4.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
+| 2026-02-11T15:55:27Z | nsc1.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
+| 2026-02-11T15:55:27Z | nsc2.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
+| 2026-02-11T15:55:27Z | nsc3.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
+| 2026-02-11T15:55:27Z | nsc4.utdallas.edu | offline | unknown | unknown | NA | NA | NA/NA | NA | NA |
 
 </details>
 
 ## How checks work
 
-1. **Ping**: ICMP ping from the external monitoring host.
-2. **No CUDA errors**: SSH to the server and execute `nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits`.
-3. **No mumax3 errors**: SSH to the server and run `mumax3 -version` (fallback to `mumax3 -v` / `mumax3`).
-4. **GPU utilization**: Average of all GPUs returned by `nvidia-smi` during each check.
+1. **Ping**: ICMP ping from the monitoring host.
+2. **CUDA health**: SSH + `nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits`.
+3. **Mumax3 health**: SSH + `mumax3 -version` (fallback to `mumax3 -v` / `mumax3`).
+4. **CPU utilization**: SSH + `top` (fallback `vmstat`) parsed as active CPU%.
+5. **Hardware inventory**: SSH + `nproc`, `lscpu`, `nvidia-smi`, and `/proc/meminfo`.
 
-## Suggested next improvements
+## GitHub-first rendering notes
 
-- Add alerting (email/Slack/webhook) when a category fails for N consecutive checks.
-- Keep a separate `unknown` state in alert logic to avoid false alarms during SSH outages.
-- Export CSV data to a time-series DB (Prometheus/InfluxDB) for long-term dashboards.
-- Add per-host configuration (SSH user, GPU thresholds, custom mumax3 command).
+- README only uses GitHub-supported Markdown tables and static SVG images.
+- Interactive JavaScript charts are intentionally avoided so everything renders directly on GitHub.
