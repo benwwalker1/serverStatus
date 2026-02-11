@@ -17,14 +17,14 @@
 <line x1="70" y1="35" x2="70" y2="305" stroke="#999"/>
 <line x1="70" y1="305" x2="1180" y2="305" stroke="#999"/>
 <text x="70.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 16:38</text>
-<text x="347.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:01</text>
-<text x="625.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:24</text>
-<text x="902.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:48</text>
-<text x="1180.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 18:11</text>
-<polyline fill="none" stroke="#d62728" stroke-opacity="0.95" stroke-width="2" points="133.70,304.46 197.61,298.79 261.11,296.90 325.02,303.92 389.31,304.73 452.43,304.46 516.33,303.92 585.36,304.73 648.67,303.92 711.98,304.46 775.29,303.92 839.98,304.46 903.29,304.46 966.60,303.92 1081.19,304.46 1180.00,303.92"/>
-<polyline fill="none" stroke="#d62728" stroke-opacity="0.80" stroke-width="2" points="70.00,303.38 133.70,304.19 197.61,302.57 261.11,303.38 325.02,304.19 389.31,287.72 452.43,303.38 516.33,304.19 585.36,304.19 648.67,303.38 711.98,303.38 775.29,304.19 839.98,304.19 903.29,304.19 966.60,304.19 1081.19,304.19 1180.00,302.57"/>
-<polyline fill="none" stroke="#d62728" stroke-opacity="0.65" stroke-width="2" points="70.00,35.00 133.70,304.46 197.61,304.46 261.11,302.30 325.02,304.46 389.31,303.38 452.43,304.46 516.33,304.46 585.36,35.00 648.67,304.46 711.98,304.46 775.29,303.92 839.98,303.92 903.29,304.46 966.60,304.46 1081.19,303.92 1180.00,304.46"/>
-<polyline fill="none" stroke="#d62728" stroke-opacity="0.50" stroke-width="2" points="70.00,302.84 133.70,302.84 197.61,303.92 261.11,303.92 325.02,303.92 389.31,303.38 452.43,303.92 516.33,302.57 585.36,303.38 648.67,302.84 711.98,303.92 775.29,303.38 839.98,302.84 903.29,303.38 966.60,287.18 1081.19,303.38 1180.00,303.38"/>
+<text x="347.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:02</text>
+<text x="625.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:27</text>
+<text x="902.50" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 17:52</text>
+<text x="1180.00" y="323" text-anchor="middle" font-size="10" fill="#444" font-family="Arial, Helvetica, sans-serif">2026-02-11 18:17</text>
+<polyline fill="none" stroke="#d62728" stroke-opacity="0.95" stroke-width="2" points="130.22,304.46 190.62,298.79 250.65,296.90 311.05,303.92 371.83,304.73 431.49,304.46 491.89,303.92 557.14,304.73 616.98,303.92 676.83,304.46 736.67,303.92 797.82,304.46 857.66,304.46 917.51,303.92 1025.82,304.46 1119.22,303.92 1180.00,304.46"/>
+<polyline fill="none" stroke="#d62728" stroke-opacity="0.80" stroke-width="2" points="70.00,303.38 130.22,304.19 190.62,302.57 250.65,303.38 311.05,304.19 371.83,287.72 431.49,303.38 491.89,304.19 557.14,304.19 616.98,303.38 676.83,303.38 736.67,304.19 797.82,304.19 857.66,304.19 917.51,304.19 1025.82,304.19 1119.22,302.57 1180.00,304.19"/>
+<polyline fill="none" stroke="#d62728" stroke-opacity="0.65" stroke-width="2" points="70.00,35.00 130.22,304.46 190.62,304.46 250.65,302.30 311.05,304.46 371.83,303.38 431.49,304.46 491.89,304.46 557.14,35.00 616.98,304.46 676.83,304.46 736.67,303.92 797.82,303.92 857.66,304.46 917.51,304.46 1025.82,303.92 1119.22,304.46 1180.00,35.00"/>
+<polyline fill="none" stroke="#d62728" stroke-opacity="0.50" stroke-width="2" points="70.00,302.84 130.22,302.84 190.62,303.92 250.65,303.92 311.05,303.92 371.83,303.38 431.49,303.92 491.89,302.57 557.14,303.38 616.98,302.84 676.83,303.92 736.67,303.38 797.82,302.84 857.66,303.38 917.51,287.18 1025.82,303.38 1119.22,303.38 1180.00,303.38"/>
 <rect x="70" y="332" width="12" height="12" fill="#d62728" fill-opacity="0.95"/>
 <text x="88" y="342" font-size="11" fill="#333" font-family="Arial, Helvetica, sans-serif">nsc1.utdallas.edu</text>
 <rect x="350" y="332" width="12" height="12" fill="#d62728" fill-opacity="0.80"/>
