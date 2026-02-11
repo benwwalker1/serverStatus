@@ -1,24 +1,24 @@
 # Server Status Dashboard
 
-Updated: **2026-02-11T15:09:30Z**
+Updated: **2026-02-11T15:13:35Z**
 
 ## Latest Check
 
 | Server | Ping | CUDA | Mumax3 | GPU util. |
 | ------ | ---- | ---- | ------ | --------- |
-| nsc1.utdallas.edu | :x: (offline) | :grey_question: (unknown) | :grey_question: (unknown) | NA |
-| nsc2.utdallas.edu | :x: (offline) | :grey_question: (unknown) | :grey_question: (unknown) | NA |
-| nsc3.utdallas.edu | :x: (offline) | :grey_question: (unknown) | :grey_question: (unknown) | NA |
-| nsc4.utdallas.edu | :x: (offline) | :grey_question: (unknown) | :grey_question: (unknown) | NA |
+| nsc1.utdallas.edu | :+1: (online) | :+1: (ok) | :+1: (ok) | 0.00% |
+| nsc2.utdallas.edu | :+1: (online) | :+1: (ok) | :+1: (ok) | 0.00% |
+| nsc3.utdallas.edu | :+1: (online) | :+1: (ok) | :x: (error) | 0.00% |
+| nsc4.utdallas.edu | :+1: (online) | :+1: (ok) | :+1: (ok) | 0.00% |
 
 ## Historical Reliability (all samples)
 
 | Server | Samples | Ping uptime | CUDA healthy | Mumax3 healthy | Avg GPU util. |
 | ------ | ------- | ----------- | ------------ | -------------- | ------------- |
-| nsc1.utdallas.edu | 4 | 0.00% | 0.00% | 0.00% | NA |
-| nsc2.utdallas.edu | 4 | 0.00% | 0.00% | 0.00% | NA |
-| nsc3.utdallas.edu | 4 | 0.00% | 0.00% | 0.00% | NA |
-| nsc4.utdallas.edu | 4 | 0.00% | 0.00% | 0.00% | NA |
+| nsc1.utdallas.edu | 5 | 20.00% | 20.00% | 20.00% | 0.00% |
+| nsc2.utdallas.edu | 5 | 20.00% | 20.00% | 20.00% | 0.00% |
+| nsc3.utdallas.edu | 5 | 20.00% | 20.00% | 0.00% | 0.00% |
+| nsc4.utdallas.edu | 5 | 20.00% | 20.00% | 20.00% | 0.00% |
 
 ## Recent Samples
 
@@ -43,6 +43,10 @@ Updated: **2026-02-11T15:09:30Z**
 | 2026-02-11T15:09:30Z | nsc2.utdallas.edu | offline | unknown | unknown | NA |
 | 2026-02-11T15:09:30Z | nsc3.utdallas.edu | offline | unknown | unknown | NA |
 | 2026-02-11T15:09:30Z | nsc4.utdallas.edu | offline | unknown | unknown | NA |
+| 2026-02-11T15:13:35Z | nsc1.utdallas.edu | online | ok | ok | 0.00 |
+| 2026-02-11T15:13:35Z | nsc2.utdallas.edu | online | ok | ok | 0.00 |
+| 2026-02-11T15:13:35Z | nsc3.utdallas.edu | online | ok | error | 0.00 |
+| 2026-02-11T15:13:35Z | nsc4.utdallas.edu | online | ok | ok | 0.00 |
 
 </details>
 
