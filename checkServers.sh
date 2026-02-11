@@ -55,17 +55,48 @@ collect_server_status() {
   if ping -c 1 -W 1 "$host" >/dev/null 2>&1; then
     ping_status="online"
 
+    local gpu_probe
+    gpu_probe=$(ssh "${SSH_OPTS[@]}" "$host" '
+      if ! command -v nvidia-smi >/dev/null 2>&1; then
+        echo "__STATUS__:missing"
+        exit 0
+      fi
+      out=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>&1)
+      rc=$?
+      if [ "$rc" -ne 0 ]; then
+        echo "__STATUS__:error"
+        echo "$out"
+        exit 0
+      fi
+      valid=$(echo "$out" | awk "NF > 0 && \$1 ~ /^[0-9]+(\\.[0-9]+)?$/ {count += 1} END {print count + 0}")
+      if [ "$valid" -gt 0 ]; then
+        echo "__STATUS__:ok"
+        echo "$out"
+      else
+        echo "__STATUS__:error"
+        echo "$out"
+      fi
+    ' 2>/dev/null || true)
+
+    local gpu_probe_status
+    gpu_probe_status=$(echo "$gpu_probe" | head -n1)
     local gpu_raw
-    gpu_raw=$(ssh "${SSH_OPTS[@]}" "$host" 'command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits' 2>/dev/null || true)
-    if [[ -n "$gpu_raw" ]]; then
-      gpu_utilization=$(echo "$gpu_raw" | awk '{sum += $1; count += 1} END {if (count > 0) printf "%.2f", sum / count; else print "NA"}')
-      if [[ "$gpu_utilization" != "NA" ]]; then
+    gpu_raw=$(echo "$gpu_probe" | tail -n +2)
+
+    if [[ "$gpu_probe_status" == "__STATUS__:ok" ]]; then
+      gpu_utilization=$(echo "$gpu_raw" | awk 'NF > 0 && $1 ~ /^[0-9]+(\.[0-9]+)?$/ {sum += $1; count += 1} END {if (count > 0) printf "%.2f", sum / count; else print "NA"}')
+      if is_numeric "$gpu_utilization"; then
         cuda_status="ok"
       else
         cuda_status="error"
+        gpu_utilization="NA"
       fi
+    elif [[ "$gpu_probe_status" == "__STATUS__:missing" ]]; then
+      cuda_status="error"
+      gpu_utilization="NA"
     else
       cuda_status="error"
+      gpu_utilization="NA"
     fi
 
     if ssh "${SSH_OPTS[@]}" "$host" 'command -v mumax3 >/dev/null 2>&1 && (mumax3 -version >/dev/null 2>&1 || mumax3 -v >/dev/null 2>&1 || mumax3 >/dev/null 2>&1)' >/dev/null 2>&1; then
@@ -312,7 +343,13 @@ generate_current_status_table() {
 
 generate_readme() {
   local timestamp_utc="$1"
-  local cycle_file="$2"
+  local timestamp_epoch="$2"
+  local cycle_file="$3"
+  local timestamp_central_us
+  local timestamp_central_eu
+
+  timestamp_central_us=$(TZ=America/Chicago date -d "@$timestamp_epoch" +"%Y-%m-%d %H:%M:%S %Z")
+  timestamp_central_eu=$(TZ=Europe/Berlin date -d "@$timestamp_epoch" +"%Y-%m-%d %H:%M:%S %Z")
 
   {
     echo "# Server Status Dashboard"
