@@ -1,0 +1,54 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Server Uptime Dashboard</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>body{font-family:Arial,Helvetica,sans-serif;margin:20px} #chart{height:70vh}</style>
+</head><body>
+<h1>Server Uptime & Utilization Dashboard</h1>
+<p>Interactive ranges: 1 day, 1 week, 1 month, 6 months.</p>
+<label>Metric:</label>
+<select id="metric">
+  <option value="ping">Ping uptime</option>
+  <option value="cuda">CUDA health uptime</option>
+  <option value="mumax3">Mumax3 health uptime</option>
+  <option value="cpu_utilization">CPU utilization</option>
+  <option value="gpu_utilization">GPU utilization</option>
+</select>
+<div id="chart"></div>
+<script>
+const data={"nsc1.utdallas.edu": {"time": [1770823232000, 1770823248000], "ping": [0, 0], "cuda": [0, 0], "mumax3": [0, 0], "cpu_utilization": [null, null], "gpu_utilization": [null, null]}, "nsc2.utdallas.edu": {"time": [1770823232000, 1770823248000], "ping": [0, 0], "cuda": [0, 0], "mumax3": [0, 0], "cpu_utilization": [null, null], "gpu_utilization": [null, null]}, "nsc3.utdallas.edu": {"time": [1770823232000, 1770823248000], "ping": [0, 0], "cuda": [0, 0], "mumax3": [0, 0], "cpu_utilization": [null, null], "gpu_utilization": [null, null]}, "nsc4.utdallas.edu": {"time": [1770823232000, 1770823248000], "ping": [0, 0], "cuda": [0, 0], "mumax3": [0, 0], "cpu_utilization": [null, null], "gpu_utilization": [null, null]}};
+const servers=["nsc1.utdallas.edu", "nsc2.utdallas.edu", "nsc3.utdallas.edu", "nsc4.utdallas.edu"];
+
+function traces(metric){
+  return servers.map(s => ({
+    x: data[s].time.map(t => new Date(t)),
+    y: data[s][metric],
+    mode: 'lines+markers',
+    name: s,
+    connectgaps: false
+  }));
+}
+
+function draw(metric){
+  const isUptime = ['ping','cuda','mumax3'].includes(metric);
+  Plotly.newPlot('chart', traces(metric), {
+    title: metric,
+    yaxis: {title: isUptime ? 'Percent (0/100 per sample)' : 'Percent utilization', range: isUptime ? [0,100] : [0,100]},
+    xaxis: {
+      title: 'Time (UTC)',
+      rangeselector: {buttons: [
+        {count:1,step:'day',stepmode:'backward',label:'1d'},
+        {count:7,step:'day',stepmode:'backward',label:'1w'},
+        {count:1,step:'month',stepmode:'backward',label:'1m'},
+        {count:6,step:'month',stepmode:'backward',label:'6m'},
+        {step:'all',label:'all'}
+      ]},
+      rangeslider: {visible:true},
+      type:'date'
+    }
+  }, {responsive:true});
+}
+
+draw('ping');
+document.getElementById('metric').addEventListener('change', e => draw(e.target.value));
+</script>
+</body></html>
