@@ -1,12 +1,12 @@
 # Server Status Dashboard
 
-Updated: **2026-02-13T17:40:36Z**
+Updated: **2026-02-13T17:46:07Z**
 
 ## Current Fleet Status
 
 | Server | Ping | CUDA | Mumax3 | CPU util. | GPU util. | CPU(logical/physical) | GPU count |
 | ------ | ---- | ---- | ------ | --------- | --------- | -------------------- | --------- |
-| nsc1.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :white_check_mark: ok | 0.40% | 0.00% | 38/20 | 1 |
+| nsc1.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :white_check_mark: ok | 0.10% | 0.00% | 38/20 | 1 |
 | nsc2.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :white_check_mark: ok | 100.00% | 0.00% | 16/8 | 1 |
 | nsc3.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :white_check_mark: ok | 0.20% | 0.00% | 24/12 | 2 |
 | nsc4.utdallas.edu | :white_check_mark: online | :white_check_mark: ok | :white_check_mark: ok | 1.10% | 0.00% | 24/12 | 2 |
@@ -24,10 +24,10 @@ Updated: **2026-02-13T17:40:36Z**
 
 | Server | Samples | Ping uptime | CUDA healthy | Mumax3 healthy | Avg CPU util. | Avg GPU util. | CPU>85% samples | GPU>90% samples |
 | ------ | ------- | ----------- | ------------ | -------------- | ------------- | ------------- | --------------- | --------------- |
-| nsc1.utdallas.edu | 540 | 100.00% | 100.00% | 100.00% | 5.10% | 0.31% | 26 | 0 |
-| nsc2.utdallas.edu | 541 | 100.00% | 100.00% | 100.00% | 13.17% | 0.00% | 68 | 0 |
-| nsc3.utdallas.edu | 541 | 100.00% | 23.29% | 23.29% | 22.88% | 0.00% | 122 | 0 |
-| nsc4.utdallas.edu | 541 | 100.00% | 100.00% | 100.00% | 0.65% | 0.00% | 0 | 0 |
+| nsc1.utdallas.edu | 541 | 100.00% | 100.00% | 100.00% | 5.09% | 0.31% | 26 | 0 |
+| nsc2.utdallas.edu | 542 | 100.00% | 100.00% | 100.00% | 13.33% | 0.00% | 69 | 0 |
+| nsc3.utdallas.edu | 542 | 100.00% | 23.43% | 23.43% | 22.84% | 0.00% | 122 | 0 |
+| nsc4.utdallas.edu | 542 | 100.00% | 100.00% | 100.00% | 0.65% | 0.00% | 0 | 0 |
 
 ## SLO Rollups
 
@@ -39,9 +39,9 @@ Updated: **2026-02-13T17:40:36Z**
 | nsc2.utdallas.edu | 24h | 100.00% | 100.00% | 100.00% |
 | nsc2.utdallas.edu | 7d | 100.00% | 100.00% | 100.00% |
 | nsc2.utdallas.edu | 30d | 100.00% | 100.00% | 100.00% |
-| nsc3.utdallas.edu | 24h | 100.00% | 47.91% | 47.91% |
-| nsc3.utdallas.edu | 7d | 100.00% | 23.29% | 23.29% |
-| nsc3.utdallas.edu | 30d | 100.00% | 23.29% | 23.29% |
+| nsc3.utdallas.edu | 24h | 100.00% | 48.29% | 48.29% |
+| nsc3.utdallas.edu | 7d | 100.00% | 23.43% | 23.43% |
+| nsc3.utdallas.edu | 30d | 100.00% | 23.43% | 23.43% |
 | nsc4.utdallas.edu | 24h | 100.00% | 100.00% | 100.00% |
 | nsc4.utdallas.edu | 7d | 100.00% | 100.00% | 100.00% |
 | nsc4.utdallas.edu | 30d | 100.00% | 100.00% | 100.00% |
@@ -72,10 +72,6 @@ Updated: **2026-02-13T17:40:36Z**
 
 | Timestamp (UTC) | Server | Ping | CUDA | Mumax3 | CPU util. | GPU util. | CPU(logical/physical) | GPU count | RAM GB |
 | --------------- | ------ | ---- | ---- | ------ | --------- | --------- | -------------------- | --------- | ------ |
-| 2026-02-13T16:25:02Z | nsc2.utdallas.edu | online | ok | ok | 100.00% | 0.00% | 16/8 | 1 | 31.02 |
-| 2026-02-13T16:25:02Z | nsc3.utdallas.edu | online | ok | ok | 0.20% | 0.00% | 24/12 | 2 | 31.01 |
-| 2026-02-13T16:25:02Z | nsc4.utdallas.edu | online | ok | ok | 0.80% | 0.00% | 24/12 | 2 | 30.96 |
-| 2026-02-13T16:30:23Z | nsc1.utdallas.edu | online | ok | ok | 0.10% | 0.00% | 38/20 | 1 | 125.16 |
 | 2026-02-13T16:30:23Z | nsc2.utdallas.edu | online | ok | ok | 100.00% | 0.00% | 16/8 | 1 | 31.02 |
 | 2026-02-13T16:30:23Z | nsc3.utdallas.edu | online | ok | ok | 0.40% | 0.00% | 24/12 | 2 | 31.01 |
 | 2026-02-13T16:30:23Z | nsc4.utdallas.edu | online | ok | ok | 0.20% | 0.00% | 24/12 | 2 | 30.96 |
@@ -131,6 +127,10 @@ Updated: **2026-02-13T17:40:36Z**
 | 2026-02-13T17:40:36Z | nsc2.utdallas.edu | online | ok | ok | 100.00% | 0.00% | 16/8 | 1 | 31.02 |
 | 2026-02-13T17:40:36Z | nsc3.utdallas.edu | online | ok | ok | 0.20% | 0.00% | 24/12 | 2 | 31.01 |
 | 2026-02-13T17:40:36Z | nsc4.utdallas.edu | online | ok | ok | 1.10% | 0.00% | 24/12 | 2 | 30.96 |
+| 2026-02-13T17:46:07Z | nsc1.utdallas.edu | online | ok | ok | 0.10% | 0.00% | 38/20 | 1 | 125.16 |
+| 2026-02-13T17:46:07Z | nsc2.utdallas.edu | online | ok | ok | 100.00% | 0.00% | 16/8 | 1 | 31.02 |
+| 2026-02-13T17:46:07Z | nsc3.utdallas.edu | online | ok | ok | 0.20% | 0.00% | 24/12 | 2 | 31.01 |
+| 2026-02-13T17:46:07Z | nsc4.utdallas.edu | online | ok | ok | 1.10% | 0.00% | 24/12 | 2 | 30.96 |
 
 </details>
 
