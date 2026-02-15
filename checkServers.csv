@@ -4438,3 +4438,7 @@ timestamp_utc,timestamp_epoch,server,ping,cuda_ok,mumax3_ok,gpu_utilization,cpu_
 2026-02-15T21:04:07Z,1771189447,nsc2.utdallas.edu,online,ok,ok,0.00,6.40,16,8,1,NVIDIA GeForce GTX 1080 Ti,31.02
 2026-02-15T21:04:07Z,1771189447,nsc3.utdallas.edu,online,ok,ok,0.00,100.00,24,12,2,NVIDIA GeForce RTX 2080 Ti;NVIDIA GeForce RTX 2080 Ti,31.01
 2026-02-15T21:04:07Z,1771189447,nsc4.utdallas.edu,online,ok,ok,0.00,0.60,24,12,2,NVIDIA GeForce RTX 2080 Ti;NVIDIA GeForce RTX 2080 Ti,30.96
+2026-02-15T21:09:30Z,1771189770,nsc1.utdallas.edu,online,ok,ok,0.00,5.70,38,20,1,Tesla P100-PCIE-16GB,125.16
+2026-02-15T21:09:30Z,1771189770,nsc2.utdallas.edu,online,ok,ok,0.00,7.00,16,8,1,NVIDIA GeForce GTX 1080 Ti,31.02
+2026-02-15T21:09:30Z,1771189770,nsc3.utdallas.edu,online,ok,ok,0.00,6.80,24,12,2,NVIDIA GeForce RTX 2080 Ti;NVIDIA GeForce RTX 2080 Ti,31.01
+2026-02-15T21:09:30Z,1771189770,nsc4.utdallas.edu,online,ok,ok,0.00,1.00,24,12,2,NVIDIA GeForce RTX 2080 Ti;NVIDIA GeForce RTX 2080 Ti,30.96
