@@ -1,0 +1,1 @@
+timestamp_utc,timestamp_epoch,server,ping,ssh,cuda_ok,mumax3_ok,gpu_util_pct,cpu_util_pct,ram_free_gb,ram_total_gb,gpu_count,gpu_free_count,gpu_names

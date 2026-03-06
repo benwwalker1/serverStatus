@@ -1,0 +1,49 @@
+name: Server Monitor
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # Every 30 minutes
+  workflow_dispatch:          # Manual trigger
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          # Add all server host keys
+          for host in nsc1.utdallas.edu nsc2.utdallas.edu nsc3.utdallas.edu nsc4.utdallas.edu; do
+            ssh-keyscan -T 5 "$host" >> ~/.ssh/known_hosts 2>/dev/null || true
+          done
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Run server checks
+        run: bash check_servers.sh --once
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+
+      - name: Generate dashboard
+        run: python3 generate_dashboard.py
+
+      - name: Commit and push results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/status.csv index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Update server status: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push
+          fi

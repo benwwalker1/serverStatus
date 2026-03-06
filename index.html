@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab Server Status</title>
+<style>
+:root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #eab308;
+    --blue: #3b82f6;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 8px; }
+header h1 { font-size: 1.5rem; font-weight: 700; }
+.updated { color: var(--text-dim); font-size: 0.85rem; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; transition: border-color 0.2s; }
+.card.up { border-left: 3px solid var(--green); }
+.card.down { border-left: 3px solid var(--red); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.card-header h2 { font-size: 1.2rem; font-weight: 600; }
+.badge { font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.05em; }
+.badge-up { background: rgba(34,197,94,0.15); color: var(--green); }
+.badge-down { background: rgba(239,68,68,0.15); color: var(--red); }
+.checks { width: 100%; margin-bottom: 12px; }
+.checks td { padding: 3px 0; font-size: 0.85rem; }
+.checks td:first-child { color: var(--text-dim); width: 60px; }
+.checks td:nth-child(2) { width: 24px; text-align: center; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.dot.green { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.4); }
+.dot.red { background: var(--red); box-shadow: 0 0 6px rgba(239,68,68,0.4); }
+.sparkline { vertical-align: middle; border-radius: 3px; overflow: hidden; }
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.metric { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 8px; text-align: center; }
+.metric .label { display: block; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+.metric .value { display: block; font-size: 1rem; font-weight: 600; }
+.hw-info { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; text-align: center; }
+.slo { display: flex; justify-content: space-around; font-size: 0.8rem; color: var(--text-dim); padding-top: 8px; border-top: 1px solid var(--border); }
+.na { color: var(--text-dim); }
+section { margin-bottom: 32px; }
+section h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+table.data { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+table.data th { text-align: left; padding: 8px 6px; color: var(--text-dim); font-weight: 500; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); }
+table.data td { padding: 6px; border-bottom: 1px solid rgba(51,65,85,0.5); }
+.table-wrap { background: var(--surface); border-radius: 12px; padding: 16px; overflow-x: auto; max-height: 500px; overflow-y: auto; }
+details summary { cursor: pointer; color: var(--blue); font-size: 0.9rem; margin-bottom: 8px; }
+details summary:hover { text-decoration: underline; }
+footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding: 24px 0; }
+@media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Lab Server Status</h1>
+        <span class="updated">Updated: 2026-03-06T10:30:00Z</span>
+    </header>
+
+    <div class="grid">
+        
+            <div class="card up">
+                <div class="card-header">
+                    <h2>nsc1</h2>
+                    <span class="badge badge-up">UP</span>
+                </div>
+                <div class="card-body">
+                    <table class="checks">
+                        <tr><td>Ping</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>SSH</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>CUDA</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>Mumax3</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                    </table>
+                    <div class="metrics">
+                        <div class="metric"><span class="label">CPU</span><span class="value">25.0%</span></div>
+                        <div class="metric"><span class="label">GPU Util</span><span class="value">50%</span></div>
+                        <div class="metric"><span class="label">RAM Free</span><span class="value">178.0 / 251.8 GB</span></div>
+                        <div class="metric"><span class="label">GPUs</span><span class="value">2 / 4 free</span></div>
+                    </div>
+                    <div class="hw-info">NVIDIA A100, NVIDIA A100, NVIDIA A100, NVIDIA A100</div>
+                    <div class="slo">
+                        <span>24h ping: <b>100.0%</b></span>
+                        <span>7d ping: <b>100.0%</b></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card up">
+                <div class="card-header">
+                    <h2>nsc2</h2>
+                    <span class="badge badge-up">UP</span>
+                </div>
+                <div class="card-body">
+                    <table class="checks">
+                        <tr><td>Ping</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>SSH</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>CUDA</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>Mumax3</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#ef4444" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                    </table>
+                    <div class="metrics">
+                        <div class="metric"><span class="label">CPU</span><span class="value">68.1%</span></div>
+                        <div class="metric"><span class="label">GPU Util</span><span class="value">80%</span></div>
+                        <div class="metric"><span class="label">RAM Free</span><span class="value">60.3 / 128.0 GB</span></div>
+                        <div class="metric"><span class="label">GPUs</span><span class="value">0 / 2 free</span></div>
+                    </div>
+                    <div class="hw-info">NVIDIA V100, NVIDIA V100</div>
+                    <div class="slo">
+                        <span>24h ping: <b>100.0%</b></span>
+                        <span>7d ping: <b>100.0%</b></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card up">
+                <div class="card-header">
+                    <h2>nsc3</h2>
+                    <span class="badge badge-up">UP</span>
+                </div>
+                <div class="card-body">
+                    <table class="checks">
+                        <tr><td>Ping</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#ef4444" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>SSH</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#ef4444" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>CUDA</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#ef4444" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>Mumax3</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#ef4444" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                    </table>
+                    <div class="metrics">
+                        <div class="metric"><span class="label">CPU</span><span class="value">15.2%</span></div>
+                        <div class="metric"><span class="label">GPU Util</span><span class="value">30%</span></div>
+                        <div class="metric"><span class="label">RAM Free</span><span class="value">200.0 / 256.0 GB</span></div>
+                        <div class="metric"><span class="label">GPUs</span><span class="value">4 / 4 free</span></div>
+                    </div>
+                    <div class="hw-info">NVIDIA A100, NVIDIA A100, NVIDIA A100, NVIDIA A100</div>
+                    <div class="slo">
+                        <span>24h ping: <b>50.0%</b></span>
+                        <span>7d ping: <b>50.0%</b></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card up">
+                <div class="card-header">
+                    <h2>nsc4</h2>
+                    <span class="badge badge-up">UP</span>
+                </div>
+                <div class="card-body">
+                    <table class="checks">
+                        <tr><td>Ping</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>SSH</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>CUDA</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>Mumax3</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                    </table>
+                    <div class="metrics">
+                        <div class="metric"><span class="label">CPU</span><span class="value">7.1%</span></div>
+                        <div class="metric"><span class="label">GPU Util</span><span class="value">10%</span></div>
+                        <div class="metric"><span class="label">RAM Free</span><span class="value">222.0 / 256.0 GB</span></div>
+                        <div class="metric"><span class="label">GPUs</span><span class="value">3 / 4 free</span></div>
+                    </div>
+                    <div class="hw-info">NVIDIA A100, NVIDIA A100, NVIDIA A100, NVIDIA A100</div>
+                    <div class="slo">
+                        <span>24h ping: <b>100.0%</b></span>
+                        <span>7d ping: <b>100.0%</b></span>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+    <section>
+        <h2>Incidents</h2>
+        <div class="table-wrap">
+            <table class="data">
+                <thead><tr><th>Time (UTC)</th><th>Server</th><th>Check</th><th>Status</th></tr></thead>
+                <tbody><tr><td>2026-03-06T10:30:00Z</td><td>nsc3</td><td>Mumax3</td><td><span class="dot green"></span> recovered</td></tr>
+<tr><td>2026-03-06T10:30:00Z</td><td>nsc3</td><td>CUDA</td><td><span class="dot green"></span> recovered</td></tr>
+<tr><td>2026-03-06T10:30:00Z</td><td>nsc3</td><td>SSH</td><td><span class="dot green"></span> recovered</td></tr>
+<tr><td>2026-03-06T10:30:00Z</td><td>nsc3</td><td>Ping</td><td><span class="dot green"></span> recovered</td></tr>
+<tr><td>2026-03-06T10:30:00Z</td><td>nsc2</td><td>Mumax3</td><td><span class="dot green"></span> recovered</td></tr></tbody>
+            </table>
+            
+        </div>
+    </section>
+
+    <section>
+        <h2>History</h2>
+        <details>
+            <summary>Show last 80 checks</summary>
+            <div class="table-wrap">
+                <table class="data">
+                    <thead><tr>
+                        <th>Time</th><th>Server</th><th>Ping</th><th>SSH</th><th>CUDA</th><th>Mumax3</th>
+                        <th>GPU %</th><th>CPU %</th><th>RAM (free/total)</th><th>GPUs (free/total)</th>
+                    </tr></thead>
+                    <tbody><tr>
+            <td>2026-03-06T10:30:00Z</td>
+            <td>nsc4</td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td>10</td>
+            <td>7.1</td>
+            <td>222.0/256.0</td>
+            <td>3/4</td>
+        </tr>
+<tr>
+            <td>2026-03-06T10:30:00Z</td>
+            <td>nsc3</td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td>30</td>
+            <td>15.2</td>
+            <td>200.0/256.0</td>
+            <td>4/4</td>
+        </tr>
+<tr>
+            <td>2026-03-06T10:30:00Z</td>
+            <td>nsc2</td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td>80</td>
+            <td>68.1</td>
+            <td>60.3/128.0</td>
+            <td>0/2</td>
+        </tr>
+<tr>
+            <td>2026-03-06T10:30:00Z</td>
+            <td>nsc1</td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td>50</td>
+            <td>25.0</td>
+            <td>178.0/251.8</td>
+            <td>2/4</td>
+        </tr>
+<tr>
+            <td>2026-03-06T10:00:00Z</td>
+            <td>nsc4</td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td>12</td>
+            <td>8.3</td>
+            <td>220.5/256.0</td>
+            <td>3/4</td>
+        </tr>
+<tr>
+            <td>2026-03-06T10:00:00Z</td>
+            <td>nsc3</td>
+            <td><span class="dot red"></span></td>
+            <td><span class="dot red"></span></td>
+            <td><span class="dot red"></span></td>
+            <td><span class="dot red"></span></td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A/N/A</td>
+            <td>N/A/N/A</td>
+        </tr>
+<tr>
+            <td>2026-03-06T10:00:00Z</td>
+            <td>nsc2</td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot red"></span></td>
+            <td>78</td>
+            <td>65.2</td>
+            <td>64.1/128.0</td>
+            <td>0/2</td>
+        </tr>
+<tr>
+            <td>2026-03-06T10:00:00Z</td>
+            <td>nsc1</td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td>45</td>
+            <td>23.5</td>
+            <td>180.2/251.8</td>
+            <td>2/4</td>
+        </tr></tbody>
+                </table>
+            </div>
+        </details>
+    </section>
+
+    <footer>
+        Checked every 30 minutes via GitHub Actions &middot; Data stored in <a href="data/status.csv" style="color:var(--blue)">status.csv</a>
+    </footer>
+</div>
+</body>
+</html>
