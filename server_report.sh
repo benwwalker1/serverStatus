@@ -46,20 +46,28 @@ if command -v nvidia-smi >/dev/null 2>&1; then
   fi
 fi
 
-# Mumax3
+# Mumax3 — check for expected output lines rather than exit code
 mumax_ok=0
 if command -v mumax3 >/dev/null 2>&1; then
-  if mumax3 -test >/dev/null 2>&1; then
+  _mumax_out=$(mumax3 -test 2>&1)
+  if echo "$_mumax_out" | grep -q "CPU info" && \
+     echo "$_mumax_out" | grep -q "GPU info" && \
+     echo "$_mumax_out" | grep -q "OS" && \
+     echo "$_mumax_out" | grep -q "commit hash"; then
     mumax_ok=1
   fi
 fi
 
-# CPU utilization
+# CPU utilization via /proc/stat (reliable across distros)
 cpu_util="null"
-if command -v top >/dev/null 2>&1; then
-  idle=$(top -bn2 -d 0.3 2>/dev/null | awk '/Cpu\(s\)/ {idle=$8} END {if (idle != "") print idle}')
-  if [ -n "$idle" ]; then
-    cpu_util=$(awk "BEGIN {printf \"%.1f\", 100 - $idle}")
+if [ -f /proc/stat ]; then
+  _s1=$(awk '/^cpu / {total=$2+$3+$4+$5+$6+$7+$8; idle=$5+$6; print total, idle}' /proc/stat)
+  sleep 1
+  _s2=$(awk '/^cpu / {total=$2+$3+$4+$5+$6+$7+$8; idle=$5+$6; print total, idle}' /proc/stat)
+  _dt=$(( $(echo "$_s2" | awk '{print $1}') - $(echo "$_s1" | awk '{print $1}') ))
+  _di=$(( $(echo "$_s2" | awk '{print $2}') - $(echo "$_s1" | awk '{print $2}') ))
+  if [ "$_dt" -gt 0 ]; then
+    cpu_util=$(awk "BEGIN {printf \"%.1f\", 100 * ($_dt - $_di) / $_dt}")
   fi
 fi
 
