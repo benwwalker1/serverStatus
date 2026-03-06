@@ -3,9 +3,6 @@ name: Build Dashboard
 on:
   schedule:
     - cron: '*/5 * * * *'  # Every 5 minutes
-  push:
-    paths:
-      - 'data/live/*.json'  # Rebuild when a server reports in
   workflow_dispatch:          # Manual trigger
 
 permissions:
