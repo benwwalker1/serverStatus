@@ -5,8 +5,25 @@ import csv
 import json
 import os
 import glob
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from collections import defaultdict
+from zoneinfo import ZoneInfo
+
+TZ_CT = ZoneInfo("America/Chicago")
+TZ_EU = ZoneInfo("Europe/Berlin")
+
+def format_time(utc_str):
+    """Convert UTC timestamp string to 'CT / CET / UTC' display."""
+    if not utc_str or utc_str == "Never":
+        return "Never"
+    try:
+        dt = datetime.fromisoformat(utc_str.replace("Z", "+00:00"))
+        ct = dt.astimezone(TZ_CT).strftime("%b %d %H:%M %Z")
+        eu = dt.astimezone(TZ_EU).strftime("%H:%M %Z")
+        utc = dt.strftime("%H:%M UTC")
+        return f"{ct} / {eu} / {utc}"
+    except (ValueError, TypeError):
+        return utc_str
 
 LIVE_DIR = "data/live"
 CSV_FILE = "data/status.csv"
@@ -136,7 +153,7 @@ def history_rows_html(rows, limit=80):
     lines = []
     for r in recent:
         lines.append(f"""<tr>
-            <td>{r['timestamp_utc']}</td>
+            <td>{format_time(r['timestamp_utc'])}</td>
             <td>{r['server']}</td>
             <td>{status_dot(r['online'])}</td>
             <td>{status_dot(r['cuda_ok'])}</td>
@@ -158,7 +175,7 @@ def incident_rows_html(rows, limit=30):
             for name, val in checks.items():
                 if prev[srv][name] != val:
                     direction = "up" if val == "1" else "down"
-                    incidents.append((r["timestamp_utc"], srv, name, direction))
+                    incidents.append((format_time(r["timestamp_utc"]), srv, name, direction))
         prev[srv] = checks
     incidents = incidents[-limit:]
     incidents.reverse()
@@ -170,7 +187,8 @@ def incident_rows_html(rows, limit=30):
 
 def generate_html(live, rows):
     now_epoch = int(datetime.now(timezone.utc).timestamp())
-    updated = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    updated = format_time(now_utc)
 
     if not rows and not live:
         server_cards = '<p style="color:var(--text-dim)">No data collected yet. Waiting for first server report...</p>'
@@ -205,7 +223,7 @@ def generate_html(live, rows):
                 gpu_c = val_or_na(data.get("gpu_count"))
                 gpu_str = f"{gpu_f} / {gpu_c} free" if gpu_f != "N/A" and gpu_c != "N/A" else "N/A"
                 gpu_names = val_or_na(data.get("gpu_names")).replace(";", ", ")
-                last_seen = data["timestamp_utc"]
+                last_seen = format_time(data["timestamp_utc"])
             else:
                 cuda_ok = "0"
                 mumax_ok = "0"
@@ -213,7 +231,7 @@ def generate_html(live, rows):
                 gpu_names = "N/A"
                 # Find last seen from CSV
                 srv_rows = [r for r in rows if r["server"] == srv and r["online"] == "1"]
-                last_seen = srv_rows[-1]["timestamp_utc"] if srv_rows else "Never"
+                last_seen = format_time(srv_rows[-1]["timestamp_utc"]) if srv_rows else "Never"
 
             online_spark = get_sparkline(rows, srv, "online")
             cuda_spark = get_sparkline(rows, srv, "cuda_ok")
@@ -345,7 +363,7 @@ footer {{ text-align: center; color: var(--text-dim); font-size: 0.75rem; paddin
         <h2>Incidents</h2>
         <div class="table-wrap">
             <table class="data">
-                <thead><tr><th>Time (UTC)</th><th>Server</th><th>Check</th><th>Status</th></tr></thead>
+                <thead><tr><th>Time</th><th>Server</th><th>Check</th><th>Status</th></tr></thead>
                 <tbody>{incident_table}</tbody>
             </table>
             {('<p style="color:var(--text-dim);padding:12px;">No incidents recorded yet.</p>' if not incident_table else '')}
