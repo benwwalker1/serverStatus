@@ -1,9 +1,9 @@
 {
   "server": "nsc4",
-  "timestamp_utc": "2026-03-06T18:15:04Z",
-  "timestamp_epoch": 1772820904,
+  "timestamp_utc": "2026-03-06T18:19:18Z",
+  "timestamp_epoch": 1772821158,
   "cuda_ok": 1,
-  "mumax3_ok": 0,
+  "mumax3_ok": 1,
   "gpu_util_pct": 0,
   "cpu_util_pct": 21.6,
   "ram_free_gb": 2.0,
