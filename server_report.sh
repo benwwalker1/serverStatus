@@ -95,30 +95,35 @@ json=$(cat <<ENDJSON
 ENDJSON
 )
 
-# --- Upload to GitHub ---
+# --- Upload to GitHub (with retry on 409 conflict) ---
 
 content_b64=$(echo "$json" | base64 -w 0 2>/dev/null || echo "$json" | base64)
 
-# Get current file SHA (needed for updates, empty for new files)
-sha=$(curl -sf -H "Authorization: token ${GITHUB_TOKEN}" \
-  -H "Accept: application/vnd.github.v3+json" \
-  "$API_URL" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('sha',''))" 2>/dev/null || true)
+for attempt in 1 2 3; do
+  # Get current file SHA (needed for updates, empty for new files)
+  sha=$(curl -sf -H "Authorization: token ${GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github.v3+json" \
+    "$API_URL" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('sha',''))" 2>/dev/null || true)
 
-if [ -n "$sha" ]; then
-  payload="{\"message\":\"${SERVER_NAME} report ${ts_utc}\",\"content\":\"${content_b64}\",\"sha\":\"${sha}\"}"
-else
-  payload="{\"message\":\"${SERVER_NAME} report ${ts_utc}\",\"content\":\"${content_b64}\"}"
-fi
+  if [ -n "$sha" ]; then
+    payload="{\"message\":\"${SERVER_NAME} report ${ts_utc}\",\"content\":\"${content_b64}\",\"sha\":\"${sha}\"}"
+  else
+    payload="{\"message\":\"${SERVER_NAME} report ${ts_utc}\",\"content\":\"${content_b64}\"}"
+  fi
 
-http_code=$(curl -s -o /dev/null -w "%{http_code}" -X PUT \
-  -H "Authorization: token ${GITHUB_TOKEN}" \
-  -H "Accept: application/vnd.github.v3+json" \
-  "$API_URL" \
-  -d "$payload")
+  http_code=$(curl -s -o /dev/null -w "%{http_code}" -X PUT \
+    -H "Authorization: token ${GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github.v3+json" \
+    "$API_URL" \
+    -d "$payload")
 
-if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
-  echo "[${ts_utc}] ${SERVER_NAME}: uploaded OK"
-else
-  echo "[${ts_utc}] ${SERVER_NAME}: upload failed (HTTP ${http_code})" >&2
-  exit 1
-fi
+  if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
+    echo "[${ts_utc}] ${SERVER_NAME}: uploaded OK"
+    exit 0
+  elif [ "$http_code" = "409" ] && [ "$attempt" -lt 3 ]; then
+    sleep $((RANDOM % 5 + 2))
+  else
+    echo "[${ts_utc}] ${SERVER_NAME}: upload failed (HTTP ${http_code})" >&2
+    exit 1
+  fi
+done
