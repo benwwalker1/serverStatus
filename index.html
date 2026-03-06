@@ -67,33 +67,33 @@ footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding
 <div class="container">
     <header>
         <h1>Lab Server Status</h1>
-        <span class="updated">Dashboard built: 2026-03-06T16:29:08Z</span>
+        <span class="updated">Dashboard built: 2026-03-06T16:37:09Z</span>
     </header>
 
     <div class="grid">
         
-            <div class="card up">
+            <div class="card down">
                 <div class="card-header">
                     <h2>nsc1</h2>
-                    <span class="badge badge-up">ONLINE</span>
+                    <span class="badge badge-down">OFFLINE</span>
                 </div>
                 <div class="card-body">
-                    <div class="last-seen">Last report: 2026-03-06T16:29:08Z <span class="age">(0s ago)</span></div>
+                    <div class="last-seen">Last report: Never <span class="age">()</span></div>
                     <table class="checks">
-                        <tr><td>Online</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>CUDA</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>Mumax3</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>Online</td><td><span class="dot red"></span></td><td><span class="na">N/A</span></td></tr>
+                        <tr><td>CUDA</td><td><span class="dot red"></span></td><td><span class="na">N/A</span></td></tr>
+                        <tr><td>Mumax3</td><td><span class="dot red"></span></td><td><span class="na">N/A</span></td></tr>
                     </table>
                     <div class="metrics">
-                        <div class="metric"><span class="label">CPU</span><span class="value">4%</span></div>
-                        <div class="metric"><span class="label">GPU Util</span><span class="value">74%</span></div>
-                        <div class="metric"><span class="label">RAM Free</span><span class="value">166 / 256 GB</span></div>
-                        <div class="metric"><span class="label">GPUs</span><span class="value">3 / 4 free</span></div>
+                        <div class="metric"><span class="label">CPU</span><span class="value">N/A</span></div>
+                        <div class="metric"><span class="label">GPU Util</span><span class="value">N/A</span></div>
+                        <div class="metric"><span class="label">RAM Free</span><span class="value">N/A</span></div>
+                        <div class="metric"><span class="label">GPUs</span><span class="value">N/A</span></div>
                     </div>
-                    <div class="hw-info">NVIDIA A100</div>
+                    <div class="hw-info">N/A</div>
                     <div class="slo">
-                        <span>24h uptime: <b>100.0%</b></span>
-                        <span>7d uptime: <b>100.0%</b></span>
+                        <span>24h uptime: <b>N/A</b></span>
+                        <span>7d uptime: <b>N/A</b></span>
                     </div>
                 </div>
             </div>
@@ -104,19 +104,19 @@ footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding
                     <span class="badge badge-up">ONLINE</span>
                 </div>
                 <div class="card-body">
-                    <div class="last-seen">Last report: 2026-03-06T16:29:08Z <span class="age">(0s ago)</span></div>
+                    <div class="last-seen">Last report: 2026-03-06T16:36:59Z <span class="age">(10s ago)</span></div>
                     <table class="checks">
                         <tr><td>Online</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
                         <tr><td>CUDA</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
                         <tr><td>Mumax3</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
                     </table>
                     <div class="metrics">
-                        <div class="metric"><span class="label">CPU</span><span class="value">48%</span></div>
-                        <div class="metric"><span class="label">GPU Util</span><span class="value">2%</span></div>
-                        <div class="metric"><span class="label">RAM Free</span><span class="value">167 / 256 GB</span></div>
-                        <div class="metric"><span class="label">GPUs</span><span class="value">0 / 4 free</span></div>
+                        <div class="metric"><span class="label">CPU</span><span class="value">0.4%</span></div>
+                        <div class="metric"><span class="label">GPU Util</span><span class="value">0%</span></div>
+                        <div class="metric"><span class="label">RAM Free</span><span class="value">27.4 / 31.0 GB</span></div>
+                        <div class="metric"><span class="label">GPUs</span><span class="value">1 / 1 free</span></div>
                     </div>
-                    <div class="hw-info">NVIDIA A100</div>
+                    <div class="hw-info">NVIDIA GeForce GTX 1080 Ti</div>
                     <div class="slo">
                         <span>24h uptime: <b>100.0%</b></span>
                         <span>7d uptime: <b>100.0%</b></span>
@@ -130,11 +130,11 @@ footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding
                     <span class="badge badge-down">OFFLINE</span>
                 </div>
                 <div class="card-body">
-                    <div class="last-seen">Last report: 2026-03-06T12:00:00Z <span class="age">(2h ago)</span></div>
+                    <div class="last-seen">Last report: Never <span class="age">()</span></div>
                     <table class="checks">
-                        <tr><td>Online</td><td><span class="dot red"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>CUDA</td><td><span class="dot red"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>Mumax3</td><td><span class="dot red"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>Online</td><td><span class="dot red"></span></td><td><span class="na">N/A</span></td></tr>
+                        <tr><td>CUDA</td><td><span class="dot red"></span></td><td><span class="na">N/A</span></td></tr>
+                        <tr><td>Mumax3</td><td><span class="dot red"></span></td><td><span class="na">N/A</span></td></tr>
                     </table>
                     <div class="metrics">
                         <div class="metric"><span class="label">CPU</span><span class="value">N/A</span></div>
@@ -144,34 +144,34 @@ footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding
                     </div>
                     <div class="hw-info">N/A</div>
                     <div class="slo">
-                        <span>24h uptime: <b>100.0%</b></span>
-                        <span>7d uptime: <b>100.0%</b></span>
+                        <span>24h uptime: <b>N/A</b></span>
+                        <span>7d uptime: <b>N/A</b></span>
                     </div>
                 </div>
             </div>
 
-            <div class="card up">
+            <div class="card down">
                 <div class="card-header">
                     <h2>nsc4</h2>
-                    <span class="badge badge-up">ONLINE</span>
+                    <span class="badge badge-down">OFFLINE</span>
                 </div>
                 <div class="card-body">
-                    <div class="last-seen">Last report: 2026-03-06T16:29:08Z <span class="age">(0s ago)</span></div>
+                    <div class="last-seen">Last report: Never <span class="age">()</span></div>
                     <table class="checks">
-                        <tr><td>Online</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>CUDA</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>Mumax3</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>Online</td><td><span class="dot red"></span></td><td><span class="na">N/A</span></td></tr>
+                        <tr><td>CUDA</td><td><span class="dot red"></span></td><td><span class="na">N/A</span></td></tr>
+                        <tr><td>Mumax3</td><td><span class="dot red"></span></td><td><span class="na">N/A</span></td></tr>
                     </table>
                     <div class="metrics">
-                        <div class="metric"><span class="label">CPU</span><span class="value">8%</span></div>
-                        <div class="metric"><span class="label">GPU Util</span><span class="value">0%</span></div>
-                        <div class="metric"><span class="label">RAM Free</span><span class="value">175 / 256 GB</span></div>
-                        <div class="metric"><span class="label">GPUs</span><span class="value">1 / 4 free</span></div>
+                        <div class="metric"><span class="label">CPU</span><span class="value">N/A</span></div>
+                        <div class="metric"><span class="label">GPU Util</span><span class="value">N/A</span></div>
+                        <div class="metric"><span class="label">RAM Free</span><span class="value">N/A</span></div>
+                        <div class="metric"><span class="label">GPUs</span><span class="value">N/A</span></div>
                     </div>
-                    <div class="hw-info">NVIDIA A100</div>
+                    <div class="hw-info">N/A</div>
                     <div class="slo">
-                        <span>24h uptime: <b>100.0%</b></span>
-                        <span>7d uptime: <b>100.0%</b></span>
+                        <span>24h uptime: <b>N/A</b></span>
+                        <span>7d uptime: <b>N/A</b></span>
                     </div>
                 </div>
             </div>
@@ -199,48 +199,15 @@ footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding
                         <th>GPU %</th><th>CPU %</th><th>RAM (free/total)</th><th>GPUs (free/total)</th>
                     </tr></thead>
                     <tbody><tr>
-            <td>2026-03-06T16:29:08Z</td>
+            <td>2026-03-06T16:36:59Z</td>
             <td>nsc2</td>
             <td><span class="dot green"></span></td>
             <td><span class="dot green"></span></td>
             <td><span class="dot green"></span></td>
-            <td>2</td>
-            <td>48</td>
-            <td>167/256</td>
-            <td>0/4</td>
-        </tr>
-<tr>
-            <td>2026-03-06T12:00:00Z</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>24</td>
-            <td>12</td>
-            <td>146/256</td>
-            <td>3/4</td>
-        </tr>
-<tr>
-            <td>2026-03-06T16:29:08Z</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
             <td>0</td>
-            <td>8</td>
-            <td>175/256</td>
-            <td>1/4</td>
-        </tr>
-<tr>
-            <td>2026-03-06T16:29:08Z</td>
-            <td>nsc1</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>74</td>
-            <td>4</td>
-            <td>166/256</td>
-            <td>3/4</td>
+            <td>0.4</td>
+            <td>27.4/31.0</td>
+            <td>1/1</td>
         </tr></tbody>
                 </table>
             </div>
