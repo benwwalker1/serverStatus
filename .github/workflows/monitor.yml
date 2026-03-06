@@ -25,15 +25,15 @@ jobs:
       - name: Pull latest (in case of concurrent pushes)
         run: git pull --rebase origin main || true
 
-      - name: Aggregate and generate dashboard
+      - name: Aggregate data
         run: python3 generate_dashboard.py
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/status.csv index.html
+          git add data/status.csv data/history.json data/incidents.json data/archive/
           if ! git diff --cached --quiet; then
-            git commit -m "Update dashboard: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git commit -m "Update data: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             git push
           fi
