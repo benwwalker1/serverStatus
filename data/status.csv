@@ -1,1 +1,5 @@
 timestamp_utc,timestamp_epoch,server,ping,ssh,cuda_ok,mumax3_ok,gpu_util_pct,cpu_util_pct,ram_free_gb,ram_total_gb,gpu_count,gpu_free_count,gpu_names
+2026-03-06T16:20:26Z,1772814026,nsc1.utdallas.edu,0,0,0,0,NA,NA,NA,NA,NA,NA,NA
+2026-03-06T16:20:26Z,1772814026,nsc2.utdallas.edu,0,0,0,0,NA,NA,NA,NA,NA,NA,NA
+2026-03-06T16:20:26Z,1772814026,nsc3.utdallas.edu,0,0,0,0,NA,NA,NA,NA,NA,NA,NA
+2026-03-06T16:20:26Z,1772814026,nsc4.utdallas.edu,0,0,0,0,NA,NA,NA,NA,NA,NA,NA
