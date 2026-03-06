@@ -80,6 +80,13 @@ if [ -f /proc/meminfo ]; then
   fi
 fi
 
+# --- Debug output ---
+echo "  CUDA:    ${cuda_ok} (GPUs: ${gpu_count}, free: ${gpu_free}, util: ${gpu_util}%)"
+echo "  GPU:     ${gpu_names}"
+echo "  Mumax3:  ${mumax_ok}"
+echo "  CPU:     ${cpu_util}%"
+echo "  RAM:     ${ram_free} / ${ram_total} GB"
+
 # --- Build JSON ---
 
 json=$(cat <<ENDJSON
