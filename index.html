@@ -21,9 +21,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
 .container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
 header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 8px; }
 header h1 { font-size: 1.5rem; font-weight: 700; }
+.header-right { display: flex; align-items: center; gap: 12px; }
 .updated { color: var(--text-dim); font-size: 0.85rem; }
+#refresh-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+#refresh-btn:hover { border-color: var(--blue); }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; transition: border-color 0.2s; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
 .card.up { border-left: 3px solid var(--green); }
 .card.down { border-left: 3px solid var(--red); }
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
@@ -33,21 +36,23 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
 .badge-down { background: rgba(239,68,68,0.15); color: var(--red); }
 .last-seen { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 10px; }
 .age { opacity: 0.7; }
-.checks { width: 100%; margin-bottom: 12px; }
+.checks { width: 100%; margin-bottom: 4px; }
 .checks td { padding: 3px 0; font-size: 0.85rem; }
 .checks td:first-child { color: var(--text-dim); width: 60px; }
 .checks td:nth-child(2) { width: 24px; text-align: center; }
+.checks td:nth-child(3) { width: 100%; }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
 .dot.green { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.4); }
 .dot.red { background: var(--red); box-shadow: 0 0 6px rgba(239,68,68,0.4); }
-.sparkline { vertical-align: middle; border-radius: 3px; overflow: hidden; }
+.sparkline { width: 100%; height: 16px; border-radius: 3px; overflow: hidden; display: block; }
+.spark-axis { position: relative; height: 14px; font-size: 0.6rem; color: var(--text-dim); margin-bottom: 10px; margin-left: 84px; }
+.spark-axis span { position: absolute; white-space: nowrap; }
 .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
 .metric { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 8px; text-align: center; }
 .metric .label { display: block; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
 .metric .value { display: block; font-size: 1rem; font-weight: 600; }
 .hw-info { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; text-align: center; }
-.slo { display: flex; justify-content: space-around; font-size: 0.8rem; color: var(--text-dim); padding-top: 8px; border-top: 1px solid var(--border); }
-.na { color: var(--text-dim); }
+.slo { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; font-size: 0.75rem; color: var(--text-dim); padding-top: 8px; border-top: 1px solid var(--border); text-align: center; }
 section { margin-bottom: 32px; }
 section h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
 table.data { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
@@ -57,9 +62,11 @@ table.data td { padding: 6px; border-bottom: 1px solid rgba(51,65,85,0.5); }
 details summary { cursor: pointer; color: var(--blue); font-size: 0.9rem; margin-bottom: 8px; }
 details summary:hover { text-decoration: underline; }
 footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding: 24px 0; }
+footer a { color: var(--blue); }
+.loading { color: var(--text-dim); text-align: center; padding: 32px; }
 @media (max-width: 600px) {
     .grid { grid-template-columns: 1fr; }
-    .metrics { grid-template-columns: 1fr 1fr; }
+    .slo { grid-template-columns: 1fr 1fr; }
 }
 </style>
 </head>
@@ -67,1053 +74,320 @@ footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding
 <div class="container">
     <header>
         <h1>Lab Server Status</h1>
-        <span class="updated">Dashboard built: Mar 06 11:45 CST / 18:45 CET / 17:45 UTC</span>
+        <div class="header-right">
+            <span class="updated" id="updated">Loading...</span>
+            <button id="refresh-btn" onclick="loadDashboard()">Refresh</button>
+        </div>
     </header>
-
-    <div class="grid">
-        
-            <div class="card down">
-                <div class="card-header">
-                    <h2>nsc1</h2>
-                    <span class="badge badge-down">OFFLINE</span>
-                </div>
-                <div class="card-body">
-                    <div class="last-seen">Last report: Feb 28 22:30 CST / 05:30 CET / 04:30 UTC <span class="age">()</span></div>
-                    <table class="checks">
-                        <tr><td>Online</td><td><span class="dot red"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="2.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="5.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="7.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="10.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="12.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="15.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="17.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="20.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="22.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="25.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="27.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="30.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="32.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="35.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="37.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="40.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="42.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="45.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="47.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="50.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="52.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="55.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="57.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="62.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="65.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="67.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="70.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="72.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="75.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="77.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="80.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="82.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="85.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="87.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="90.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="92.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="95.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="97.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="100.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="102.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="105.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="107.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="110.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="112.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="115.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="117.5" y="0" width="2.5" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>CUDA</td><td><span class="dot red"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="2.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="5.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="7.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="10.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="12.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="15.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="17.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="20.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="22.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="25.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="27.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="30.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="32.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="35.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="37.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="40.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="42.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="45.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="47.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="50.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="52.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="55.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="57.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="62.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="65.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="67.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="70.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="72.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="75.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="77.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="80.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="82.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="85.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="87.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="90.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="92.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="95.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="97.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="100.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="102.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="105.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="107.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="110.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="112.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="115.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="117.5" y="0" width="2.5" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>Mumax3</td><td><span class="dot red"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="2.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="5.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="7.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="10.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="12.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="15.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="17.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="20.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="22.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="25.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="27.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="30.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="32.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="35.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="37.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="40.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="42.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="45.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="47.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="50.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="52.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="55.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="57.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="62.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="65.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="67.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="70.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="72.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="75.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="77.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="80.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="82.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="85.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="87.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="90.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="92.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="95.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="97.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="100.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="102.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="105.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="107.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="110.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="112.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="115.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="117.5" y="0" width="2.5" height="20" fill="#22c55e" /></svg></td></tr>
-                    </table>
-                    <div class="metrics">
-                        <div class="metric"><span class="label">CPU</span><span class="value">N/A</span></div>
-                        <div class="metric"><span class="label">GPU Util</span><span class="value">N/A</span></div>
-                        <div class="metric"><span class="label">RAM Free</span><span class="value">N/A</span></div>
-                        <div class="metric"><span class="label">GPUs</span><span class="value">1 total (last known)</span></div>
-                    </div>
-                    <div class="hw-info">Tesla P100-PCIE-16GB</div>
-                    <div class="slo">
-                        <span>24h uptime: <b>N/A</b></span>
-                        <span>7d uptime: <b>100.0%</b></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card up">
-                <div class="card-header">
-                    <h2>nsc2</h2>
-                    <span class="badge badge-up">ONLINE</span>
-                </div>
-                <div class="card-body">
-                    <div class="last-seen">Last report: Mar 06 11:45 CST / 18:45 CET / 17:45 UTC <span class="age">(10s ago)</span></div>
-                    <table class="checks">
-                        <tr><td>Online</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="2.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="5.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="7.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="10.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="12.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="15.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="17.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="20.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="22.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="25.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="27.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="30.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="32.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="35.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="37.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="40.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="42.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="45.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="47.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="50.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="52.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="55.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="57.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="62.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="65.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="67.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="70.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="72.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="75.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="77.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="80.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="82.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="85.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="87.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="90.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="92.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="95.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="97.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="100.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="102.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="105.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="107.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="110.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="112.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="115.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="117.5" y="0" width="2.5" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>CUDA</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="2.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="5.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="7.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="10.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="12.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="15.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="17.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="20.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="22.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="25.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="27.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="30.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="32.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="35.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="37.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="40.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="42.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="45.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="47.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="50.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="52.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="55.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="57.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="62.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="65.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="67.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="70.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="72.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="75.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="77.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="80.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="82.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="85.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="87.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="90.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="92.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="95.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="97.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="100.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="102.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="105.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="107.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="110.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="112.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="115.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="117.5" y="0" width="2.5" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>Mumax3</td><td><span class="dot red"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="2.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="5.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="7.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="10.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="12.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="15.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="17.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="20.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="22.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="25.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="27.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="30.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="32.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="35.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="37.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="40.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="42.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="45.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="47.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="50.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="52.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="55.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="57.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="62.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="65.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="67.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="70.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="72.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="75.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="77.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="80.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="82.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="85.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="87.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="90.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="92.5" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="95.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="97.5" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="100.0" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="102.5" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="105.0" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="107.5" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="110.0" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="112.5" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="115.0" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="117.5" y="0" width="2.5" height="20" fill="#ef4444" /></svg></td></tr>
-                    </table>
-                    <div class="metrics">
-                        <div class="metric"><span class="label">CPU</span><span class="value">0.2%</span></div>
-                        <div class="metric"><span class="label">GPU Util</span><span class="value">0%</span></div>
-                        <div class="metric"><span class="label">RAM Free</span><span class="value">27.4 / 31.0 GB</span></div>
-                        <div class="metric"><span class="label">GPUs</span><span class="value">1 / 1 free</span></div>
-                    </div>
-                    <div class="hw-info">NVIDIA GeForce GTX 1080 Ti</div>
-                    <div class="slo">
-                        <span>24h uptime: <b>100.0%</b></span>
-                        <span>7d uptime: <b>100.0%</b></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card up">
-                <div class="card-header">
-                    <h2>nsc3</h2>
-                    <span class="badge badge-up">ONLINE</span>
-                </div>
-                <div class="card-body">
-                    <div class="last-seen">Last report: Mar 06 11:45 CST / 18:45 CET / 17:45 UTC <span class="age">(10s ago)</span></div>
-                    <table class="checks">
-                        <tr><td>Online</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="2.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="5.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="7.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="10.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="12.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="15.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="17.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="20.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="22.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="25.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="27.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="30.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="32.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="35.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="37.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="40.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="42.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="45.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="47.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="50.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="52.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="55.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="57.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="62.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="65.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="67.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="70.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="72.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="75.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="77.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="80.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="82.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="85.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="87.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="90.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="92.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="95.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="97.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="100.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="102.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="105.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="107.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="110.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="112.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="115.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="117.5" y="0" width="2.5" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>CUDA</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="2.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="5.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="7.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="10.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="12.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="15.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="17.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="20.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="22.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="25.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="27.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="30.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="32.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="35.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="37.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="40.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="42.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="45.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="47.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="50.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="52.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="55.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="57.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="62.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="65.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="67.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="70.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="72.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="75.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="77.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="80.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="82.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="85.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="87.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="90.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="92.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="95.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="97.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="100.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="102.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="105.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="107.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="110.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="112.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="115.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="117.5" y="0" width="2.5" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>Mumax3</td><td><span class="dot red"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="2.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="5.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="7.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="10.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="12.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="15.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="17.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="20.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="22.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="25.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="27.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="30.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="32.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="35.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="37.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="40.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="42.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="45.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="47.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="50.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="52.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="55.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="57.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="62.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="65.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="67.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="70.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="72.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="75.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="77.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="80.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="82.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="85.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="87.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="90.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="92.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="95.0" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="97.5" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="100.0" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="102.5" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="105.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="107.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="110.0" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="112.5" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="115.0" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="117.5" y="0" width="2.5" height="20" fill="#ef4444" /></svg></td></tr>
-                    </table>
-                    <div class="metrics">
-                        <div class="metric"><span class="label">CPU</span><span class="value">50.2%</span></div>
-                        <div class="metric"><span class="label">GPU Util</span><span class="value">0%</span></div>
-                        <div class="metric"><span class="label">RAM Free</span><span class="value">18.5 / 31.0 GB</span></div>
-                        <div class="metric"><span class="label">GPUs</span><span class="value">2 / 2 free</span></div>
-                    </div>
-                    <div class="hw-info">NVIDIA GeForce RTX 2080 Ti, NVIDIA GeForce RTX 2080 Ti</div>
-                    <div class="slo">
-                        <span>24h uptime: <b>100.0%</b></span>
-                        <span>7d uptime: <b>100.0%</b></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card up">
-                <div class="card-header">
-                    <h2>nsc4</h2>
-                    <span class="badge badge-up">ONLINE</span>
-                </div>
-                <div class="card-body">
-                    <div class="last-seen">Last report: Mar 06 11:45 CST / 18:45 CET / 17:45 UTC <span class="age">(9s ago)</span></div>
-                    <table class="checks">
-                        <tr><td>Online</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="2.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="5.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="7.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="10.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="12.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="15.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="17.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="20.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="22.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="25.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="27.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="30.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="32.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="35.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="37.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="40.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="42.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="45.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="47.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="50.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="52.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="55.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="57.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="62.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="65.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="67.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="70.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="72.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="75.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="77.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="80.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="82.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="85.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="87.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="90.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="92.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="95.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="97.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="100.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="102.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="105.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="107.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="110.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="112.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="115.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="117.5" y="0" width="2.5" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>CUDA</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="2.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="5.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="7.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="10.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="12.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="15.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="17.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="20.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="22.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="25.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="27.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="30.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="32.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="35.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="37.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="40.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="42.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="45.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="47.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="50.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="52.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="55.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="57.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="62.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="65.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="67.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="70.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="72.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="75.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="77.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="80.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="82.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="85.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="87.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="90.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="92.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="95.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="97.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="100.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="102.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="105.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="107.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="110.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="112.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="115.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="117.5" y="0" width="2.5" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>Mumax3</td><td><span class="dot red"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="2.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="5.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="7.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="10.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="12.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="15.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="17.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="20.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="22.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="25.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="27.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="30.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="32.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="35.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="37.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="40.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="42.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="45.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="47.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="50.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="52.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="55.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="57.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="62.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="65.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="67.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="70.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="72.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="75.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="77.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="80.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="82.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="85.0" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="87.5" y="0" width="2.5" height="20" fill="#22c55e" /><rect x="90.0" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="92.5" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="95.0" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="97.5" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="100.0" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="102.5" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="105.0" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="107.5" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="110.0" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="112.5" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="115.0" y="0" width="2.5" height="20" fill="#ef4444" /><rect x="117.5" y="0" width="2.5" height="20" fill="#ef4444" /></svg></td></tr>
-                    </table>
-                    <div class="metrics">
-                        <div class="metric"><span class="label">CPU</span><span class="value">22.0%</span></div>
-                        <div class="metric"><span class="label">GPU Util</span><span class="value">0%</span></div>
-                        <div class="metric"><span class="label">RAM Free</span><span class="value">2.3 / 31.0 GB</span></div>
-                        <div class="metric"><span class="label">GPUs</span><span class="value">2 / 2 free</span></div>
-                    </div>
-                    <div class="hw-info">NVIDIA GeForce RTX 2080 Ti, NVIDIA GeForce RTX 2080 Ti</div>
-                    <div class="slo">
-                        <span>24h uptime: <b>100.0%</b></span>
-                        <span>7d uptime: <b>100.0%</b></span>
-                    </div>
-                </div>
-            </div>
+    <div class="grid" id="cards">
+        <p class="loading">Loading server data...</p>
     </div>
-
     <section>
         <h2>Incidents</h2>
-        <div class="table-wrap">
-            <table class="data">
-                <thead><tr><th>Time</th><th>Server</th><th>Check</th><th>Status</th></tr></thead>
-                <tbody><tr><td>Mar 06 11:30 CST / 18:30 CET / 17:30 UTC</td><td>nsc3</td><td>Mumax3</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Mar 06 11:29 CST / 18:29 CET / 17:29 UTC</td><td>nsc3</td><td>Mumax3</td><td><span class="dot green"></span> recovered</td></tr>
-<tr><td>Mar 06 11:00 CST / 18:00 CET / 17:00 UTC</td><td>nsc2</td><td>Mumax3</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Mar 06 10:53 CST / 17:53 CET / 16:53 UTC</td><td>nsc2</td><td>Mumax3</td><td><span class="dot green"></span> recovered</td></tr>
-<tr><td>Mar 06 10:50 CST / 17:50 CET / 16:50 UTC</td><td>nsc4</td><td>Mumax3</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Mar 06 10:45 CST / 17:45 CET / 16:45 UTC</td><td>nsc3</td><td>Mumax3</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Mar 06 10:40 CST / 17:40 CET / 16:40 UTC</td><td>nsc2</td><td>Mumax3</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Feb 18 20:21 CST / 03:21 CET / 02:21 UTC</td><td>nsc1</td><td>CUDA</td><td><span class="dot green"></span> recovered</td></tr>
-<tr><td>Feb 18 20:14 CST / 03:14 CET / 02:14 UTC</td><td>nsc1</td><td>CUDA</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Feb 16 17:41 CST / 00:41 CET / 23:41 UTC</td><td>nsc3</td><td>Mumax3</td><td><span class="dot green"></span> recovered</td></tr>
-<tr><td>Feb 16 17:41 CST / 00:41 CET / 23:41 UTC</td><td>nsc3</td><td>CUDA</td><td><span class="dot green"></span> recovered</td></tr>
-<tr><td>Feb 16 17:41 CST / 00:41 CET / 23:41 UTC</td><td>nsc2</td><td>Mumax3</td><td><span class="dot green"></span> recovered</td></tr>
-<tr><td>Feb 16 17:41 CST / 00:41 CET / 23:41 UTC</td><td>nsc2</td><td>CUDA</td><td><span class="dot green"></span> recovered</td></tr>
-<tr><td>Feb 16 17:36 CST / 00:36 CET / 23:36 UTC</td><td>nsc3</td><td>Mumax3</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Feb 16 17:36 CST / 00:36 CET / 23:36 UTC</td><td>nsc3</td><td>CUDA</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Feb 16 17:36 CST / 00:36 CET / 23:36 UTC</td><td>nsc2</td><td>Mumax3</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Feb 16 17:36 CST / 00:36 CET / 23:36 UTC</td><td>nsc2</td><td>CUDA</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Feb 16 17:30 CST / 00:30 CET / 23:30 UTC</td><td>nsc2</td><td>Mumax3</td><td><span class="dot green"></span> recovered</td></tr>
-<tr><td>Feb 16 17:30 CST / 00:30 CET / 23:30 UTC</td><td>nsc2</td><td>CUDA</td><td><span class="dot green"></span> recovered</td></tr>
-<tr><td>Feb 16 17:20 CST / 00:20 CET / 23:20 UTC</td><td>nsc2</td><td>Mumax3</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Feb 16 17:20 CST / 00:20 CET / 23:20 UTC</td><td>nsc2</td><td>CUDA</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Feb 16 17:15 CST / 00:15 CET / 23:15 UTC</td><td>nsc3</td><td>Mumax3</td><td><span class="dot green"></span> recovered</td></tr>
-<tr><td>Feb 16 17:15 CST / 00:15 CET / 23:15 UTC</td><td>nsc3</td><td>CUDA</td><td><span class="dot green"></span> recovered</td></tr>
-<tr><td>Feb 16 17:05 CST / 00:05 CET / 23:05 UTC</td><td>nsc3</td><td>Mumax3</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Feb 16 17:05 CST / 00:05 CET / 23:05 UTC</td><td>nsc3</td><td>CUDA</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Feb 16 04:36 CST / 11:36 CET / 10:36 UTC</td><td>nsc1</td><td>CUDA</td><td><span class="dot green"></span> recovered</td></tr>
-<tr><td>Feb 16 04:30 CST / 11:30 CET / 10:30 UTC</td><td>nsc1</td><td>CUDA</td><td><span class="dot red"></span> down</td></tr>
-<tr><td>Feb 13 00:24 CST / 07:24 CET / 06:24 UTC</td><td>nsc3</td><td>Mumax3</td><td><span class="dot green"></span> recovered</td></tr>
-<tr><td>Feb 13 00:24 CST / 07:24 CET / 06:24 UTC</td><td>nsc3</td><td>CUDA</td><td><span class="dot green"></span> recovered</td></tr></tbody>
-            </table>
-            
+        <div class="table-wrap" id="incidents">
+            <p class="loading">Loading...</p>
         </div>
     </section>
-
     <section>
-        <h2>History</h2>
+        <h2>Recent History</h2>
         <details>
-            <summary>Show last 80 checks</summary>
-            <div class="table-wrap">
-                <table class="data">
-                    <thead><tr>
-                        <th>Time</th><th>Server</th><th>Online</th><th>CUDA</th><th>Mumax3</th>
-                        <th>GPU %</th><th>CPU %</th><th>RAM (free/total)</th><th>GPUs (free/total)</th>
-                    </tr></thead>
-                    <tbody><tr>
-            <td>Mar 06 11:45 CST / 18:45 CET / 17:45 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>0.2</td>
-            <td>27.4/31.0</td>
-            <td>1/1</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:45 CST / 18:45 CET / 17:45 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>50.2</td>
-            <td>18.5/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:45 CST / 18:45 CET / 17:45 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>22.0</td>
-            <td>2.3/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:40 CST / 18:40 CET / 17:40 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>2.2</td>
-            <td>27.4/31.0</td>
-            <td>1/1</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:40 CST / 18:40 CET / 17:40 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>50.3</td>
-            <td>18.5/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:40 CST / 18:40 CET / 17:40 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>38.2</td>
-            <td>2.2/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:35 CST / 18:35 CET / 17:35 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>0.6</td>
-            <td>27.4/31.0</td>
-            <td>1/1</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:35 CST / 18:35 CET / 17:35 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>50.7</td>
-            <td>18.5/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:35 CST / 18:35 CET / 17:35 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>21.8</td>
-            <td>2.3/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:30 CST / 18:30 CET / 17:30 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>50.1</td>
-            <td>18.5/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:30 CST / 18:30 CET / 17:30 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>21.8</td>
-            <td>2.2/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:29 CST / 18:29 CET / 17:29 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0</td>
-            <td>50.3</td>
-            <td>18.5/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:29 CST / 18:29 CET / 17:29 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0</td>
-            <td>50.2</td>
-            <td>18.5/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:25 CST / 18:25 CET / 17:25 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>0.2</td>
-            <td>27.4/31.0</td>
-            <td>1/1</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:25 CST / 18:25 CET / 17:25 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>67.6</td>
-            <td>1.8/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:20 CST / 18:20 CET / 17:20 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>2.0</td>
-            <td>27.4/31.0</td>
-            <td>1/1</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:20 CST / 18:20 CET / 17:20 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>21.7</td>
-            <td>2.1/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:15 CST / 18:15 CET / 17:15 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>0.6</td>
-            <td>27.4/31.0</td>
-            <td>1/1</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:15 CST / 18:15 CET / 17:15 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>22.0</td>
-            <td>1.8/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:10 CST / 18:10 CET / 17:10 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>0.4</td>
-            <td>27.4/31.0</td>
-            <td>1/1</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:10 CST / 18:10 CET / 17:10 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>26.9</td>
-            <td>1.9/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:05 CST / 18:05 CET / 17:05 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>4.3</td>
-            <td>27.4/31.0</td>
-            <td>1/1</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:05 CST / 18:05 CET / 17:05 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>57.4</td>
-            <td>18.5/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:05 CST / 18:05 CET / 17:05 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>67.2</td>
-            <td>1.7/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:00 CST / 18:00 CET / 17:00 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>0.8</td>
-            <td>27.4/31.0</td>
-            <td>1/1</td>
-        </tr>
-<tr>
-            <td>Mar 06 11:00 CST / 18:00 CET / 17:00 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>67.1</td>
-            <td>1.8/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 10:55 CST / 17:55 CET / 16:55 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>51.4</td>
-            <td>18.5/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 10:55 CST / 17:55 CET / 16:55 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>26.1</td>
-            <td>1.8/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 10:53 CST / 17:53 CET / 16:53 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0</td>
-            <td>0.2</td>
-            <td>27.4/31.0</td>
-            <td>1/1</td>
-        </tr>
-<tr>
-            <td>Mar 06 10:50 CST / 17:50 CET / 16:50 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>54.3</td>
-            <td>18.5/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 10:50 CST / 17:50 CET / 16:50 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>67.3</td>
-            <td>1.7/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 10:45 CST / 17:45 CET / 16:45 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>51.1</td>
-            <td>18.5/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 10:42 CST / 17:42 CET / 16:42 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0</td>
-            <td>50.3</td>
-            <td>18.5/31.0</td>
-            <td>2/2</td>
-        </tr>
-<tr>
-            <td>Mar 06 10:40 CST / 17:40 CET / 16:40 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot red"></span></td>
-            <td>0</td>
-            <td>0.4</td>
-            <td>27.4/31.0</td>
-            <td>1/1</td>
-        </tr>
-<tr>
-            <td>Mar 06 10:36 CST / 17:36 CET / 16:36 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0</td>
-            <td>0.4</td>
-            <td>27.4/31.0</td>
-            <td>1/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:30 CST / 05:30 CET / 04:30 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.40</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:30 CST / 05:30 CET / 04:30 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>4.20</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:30 CST / 05:30 CET / 04:30 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.60</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:30 CST / 05:30 CET / 04:30 UTC</td>
-            <td>nsc1</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.50</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:24 CST / 05:24 CET / 04:24 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.40</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:24 CST / 05:24 CET / 04:24 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>4.00</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:24 CST / 05:24 CET / 04:24 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.90</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:24 CST / 05:24 CET / 04:24 UTC</td>
-            <td>nsc1</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.10</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:19 CST / 05:19 CET / 04:19 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.60</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:19 CST / 05:19 CET / 04:19 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.20</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:19 CST / 05:19 CET / 04:19 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.30</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:19 CST / 05:19 CET / 04:19 UTC</td>
-            <td>nsc1</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.60</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:12 CST / 05:12 CET / 04:12 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>7.70</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:12 CST / 05:12 CET / 04:12 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.20</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:12 CST / 05:12 CET / 04:12 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.60</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:12 CST / 05:12 CET / 04:12 UTC</td>
-            <td>nsc1</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.20</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:06 CST / 05:06 CET / 04:06 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>10.50</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:06 CST / 05:06 CET / 04:06 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.20</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:06 CST / 05:06 CET / 04:06 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.30</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:06 CST / 05:06 CET / 04:06 UTC</td>
-            <td>nsc1</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.20</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:00 CST / 05:00 CET / 04:00 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>5.20</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:00 CST / 05:00 CET / 04:00 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>100.00</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:00 CST / 05:00 CET / 04:00 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>100.00</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 22:00 CST / 05:00 CET / 04:00 UTC</td>
-            <td>nsc1</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.20</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:54 CST / 04:54 CET / 03:54 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.80</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:54 CST / 04:54 CET / 03:54 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.20</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:54 CST / 04:54 CET / 03:54 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.30</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:54 CST / 04:54 CET / 03:54 UTC</td>
-            <td>nsc1</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.20</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:49 CST / 04:49 CET / 03:49 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.40</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:49 CST / 04:49 CET / 03:49 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>100.00</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:49 CST / 04:49 CET / 03:49 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.30</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:49 CST / 04:49 CET / 03:49 UTC</td>
-            <td>nsc1</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.50</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:43 CST / 04:43 CET / 03:43 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.60</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:43 CST / 04:43 CET / 03:43 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.20</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:43 CST / 04:43 CET / 03:43 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.60</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:43 CST / 04:43 CET / 03:43 UTC</td>
-            <td>nsc1</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.20</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:38 CST / 04:38 CET / 03:38 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.60</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:38 CST / 04:38 CET / 03:38 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>100.00</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:38 CST / 04:38 CET / 03:38 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.30</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:38 CST / 04:38 CET / 03:38 UTC</td>
-            <td>nsc1</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.30</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:32 CST / 04:32 CET / 03:32 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.40</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:32 CST / 04:32 CET / 03:32 UTC</td>
-            <td>nsc3</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>100.00</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:32 CST / 04:32 CET / 03:32 UTC</td>
-            <td>nsc2</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.60</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:32 CST / 04:32 CET / 03:32 UTC</td>
-            <td>nsc1</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.10</td>
-            <td>N/A/N/A</td>
-            <td>N/A/1</td>
-        </tr>
-<tr>
-            <td>Feb 28 21:27 CST / 04:27 CET / 03:27 UTC</td>
-            <td>nsc4</td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td><span class="dot green"></span></td>
-            <td>0.00</td>
-            <td>0.60</td>
-            <td>N/A/N/A</td>
-            <td>N/A/2</td>
-        </tr></tbody>
-                </table>
+            <summary>Show recent checks</summary>
+            <div class="table-wrap" id="history">
+                <p class="loading">Loading...</p>
             </div>
         </details>
     </section>
-
     <footer>
-        Servers self-report every 5 min &middot; Dashboard rebuilt by GitHub Actions &middot; <a href="data/status.csv" style="color:var(--blue)">Historical CSV</a>
+        Servers self-report every 5 min &middot; Auto-refreshes every 5 min &middot;
+        <a href="https://github.com/benwwalker1/serverStatus">GitHub</a>
     </footer>
 </div>
+<script>
+const BASE = 'https://raw.githubusercontent.com/benwwalker1/serverStatus/main';
+const SERVERS = ['nsc1', 'nsc2', 'nsc3', 'nsc4'];
+const STALE_SEC = 600;
+const REFRESH_MS = 300000;
+const HOURS_7D = 168;
+
+// ── Time formatting ──
+
+function fmtDate(d, tz) {
+    const y = d.toLocaleString('en-US', { timeZone: tz, year: 'numeric' });
+    const m = d.toLocaleString('en-US', { timeZone: tz, month: 'short' });
+    const day = d.toLocaleString('en-US', { timeZone: tz, day: '2-digit' });
+    return y + ' ' + m + ' ' + day;
+}
+
+function formatTime(utcStr) {
+    if (!utcStr) return 'Never';
+    const d = new Date(utcStr.endsWith('Z') ? utcStr : utcStr + 'Z');
+    if (isNaN(d)) return utcStr;
+    const tz = 'America/Chicago';
+    const date = fmtDate(d, tz);
+    const time = d.toLocaleString('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false, timeZoneName: 'short' });
+    const eu = d.toLocaleString('en-US', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', hour12: false, timeZoneName: 'short' });
+    const utc = d.toLocaleString('en-US', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', hour12: false }) + ' UTC';
+    return date + ' ' + time + ' / ' + eu + ' / ' + utc;
+}
+
+function timeAgo(epochSec) {
+    const diff = Math.floor(Date.now() / 1000) - epochSec;
+    if (diff < 0) return 'just now';
+    if (diff < 60) return diff + 's ago';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    return Math.floor(diff / 86400) + 'd ago';
+}
+
+// ── Sparkline ──
+
+function getMidnightCTEpoch() {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+    const utcD = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+    const ctD = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+    const offsetMs = utcD - ctD;
+    return Math.floor((new Date(dateStr + 'T00:00:00Z').getTime() + offsetMs) / 1000);
+}
+
+function buildBuckets(entries, server) {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const startSec = nowSec - 7 * 86400;
+    const out = { on: new Array(HOURS_7D).fill(null), cuda: new Array(HOURS_7D).fill(null), mumax: new Array(HOURS_7D).fill(null) };
+    for (const e of entries) {
+        if (e.s !== server) continue;
+        const h = Math.floor((e.t - startSec) / 3600);
+        if (h >= 0 && h < HOURS_7D) {
+            out.on[h] = e.on;
+            out.cuda[h] = e.cuda;
+            out.mumax[h] = e.mumax;
+        }
+    }
+    return out;
+}
+
+function sparkSVG(buckets) {
+    const n = buckets.length;
+    let svg = '';
+    for (let i = 0; i < n; i++) {
+        const v = buckets[i];
+        const color = v === null ? '#1e293b' : (v ? '#22c55e' : '#ef4444');
+        const x = (i / n * 168).toFixed(2);
+        const w = (168 / n + 0.3).toFixed(2);
+        svg += '<rect x="' + x + '" y="0" width="' + w + '" height="16" fill="' + color + '"/>';
+    }
+    const nowSec = Math.floor(Date.now() / 1000);
+    const startSec = nowSec - 7 * 86400;
+    const pct = (getMidnightCTEpoch() - startSec) / (7 * 86400);
+    if (pct > 0.01 && pct < 0.99) {
+        const x = (pct * 168).toFixed(1);
+        svg += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="16" stroke="#94a3b8" stroke-width="0.7" stroke-dasharray="2,1.5"/>';
+    }
+    return '<svg viewBox="0 0 168 16" preserveAspectRatio="none" class="sparkline">' + svg + '</svg>';
+}
+
+function sparkAxis() {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const startSec = nowSec - 7 * 86400;
+    const todayPct = ((getMidnightCTEpoch() - startSec) / (7 * 86400) * 100).toFixed(1);
+    return '<div class="spark-axis">' +
+        '<span style="left:0">7d ago</span>' +
+        '<span style="left:' + todayPct + '%;transform:translateX(-50%)">today</span>' +
+        '<span style="right:0">now</span>' +
+        '</div>';
+}
+
+// ── Uptime stats ──
+
+function uptimePct(entries, server, windowHours) {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const cutoff = windowHours !== null ? nowSec - windowHours * 3600 : 0;
+    let total = 0, online = 0;
+    for (const e of entries) {
+        if (e.s !== server || e.t < cutoff) continue;
+        total++;
+        if (e.on) online++;
+    }
+    if (total === 0) return 'N/A';
+    return (100 * online / total).toFixed(1) + '%';
+}
+
+// ── Helpers ──
+
+function dot(val) {
+    return '<span class="dot ' + (val ? 'green' : 'red') + '"></span>';
+}
+
+function vna(v) {
+    if (v === null || v === undefined || v === 'NA' || v === 'null' || v === '') return 'N/A';
+    return String(v);
+}
+
+function findLastOnline(entries, server) {
+    for (let i = entries.length - 1; i >= 0; i--) {
+        if (entries[i].s === server && entries[i].on) return entries[i];
+    }
+    return null;
+}
+
+// ── Rendering ──
+
+function renderCards(liveMap, entries) {
+    const nowSec = Math.floor(Date.now() / 1000);
+    let html = '';
+
+    for (const srv of SERVERS) {
+        const data = liveMap[srv];
+        const isOnline = data && (nowSec - data.timestamp_epoch) < STALE_SEC;
+        const cardCls = isOnline ? 'card up' : 'card down';
+        const badge = isOnline
+            ? '<span class="badge badge-up">ONLINE</span>'
+            : '<span class="badge badge-down">OFFLINE</span>';
+
+        let lastSeen, cuda, mumax, cpuUtil, gpuUtil, ramStr, gpuStr, gpuNames, ageStr;
+
+        if (data && isOnline) {
+            cuda = data.cuda_ok;
+            mumax = data.mumax3_ok;
+            cpuUtil = vna(data.cpu_util_pct); if (cpuUtil !== 'N/A') cpuUtil += '%';
+            gpuUtil = vna(data.gpu_util_pct); if (gpuUtil !== 'N/A') gpuUtil += '%';
+            const rf = vna(data.ram_free_gb), rt = vna(data.ram_total_gb);
+            ramStr = (rf !== 'N/A' && rt !== 'N/A') ? rf + ' / ' + rt + ' GB' : 'N/A';
+            const gf = vna(data.gpu_free_count), gc = vna(data.gpu_count);
+            gpuStr = (gf !== 'N/A' && gc !== 'N/A') ? gf + ' / ' + gc + ' free' : 'N/A';
+            gpuNames = vna(data.gpu_names);
+            lastSeen = formatTime(data.timestamp_utc);
+            ageStr = timeAgo(data.timestamp_epoch);
+        } else {
+            cuda = 0; mumax = 0; cpuUtil = 'N/A'; gpuUtil = 'N/A';
+            const hist = findLastOnline(entries, srv);
+            if (hist) {
+                lastSeen = formatTime(new Date(hist.t * 1000).toISOString());
+                ageStr = timeAgo(hist.t);
+                const rt = vna(hist.ram_t);
+                ramStr = rt !== 'N/A' ? rt + ' GB (last known)' : 'N/A';
+                const gc = vna(hist.gpu_c);
+                gpuStr = gc !== 'N/A' ? gc + ' total (last known)' : 'N/A';
+                gpuNames = vna(hist.gpu_n);
+            } else {
+                lastSeen = 'Never'; ageStr = '';
+                ramStr = gpuStr = gpuNames = 'N/A';
+            }
+        }
+
+        const bk = buildBuckets(entries, srv);
+        const up24 = uptimePct(entries, srv, 24);
+        const up7d = uptimePct(entries, srv, 168);
+        const up30d = uptimePct(entries, srv, 720);
+        const upAll = uptimePct(entries, srv, null);
+
+        html += '<div class="' + cardCls + '">' +
+            '<div class="card-header"><h2>' + srv + '</h2>' + badge + '</div>' +
+            '<div class="last-seen">Last report: ' + lastSeen +
+                (ageStr ? ' <span class="age">(' + ageStr + ')</span>' : '') + '</div>' +
+            '<table class="checks">' +
+            '<tr><td>Online</td><td>' + dot(isOnline) + '</td><td>' + sparkSVG(bk.on) + '</td></tr>' +
+            '<tr><td>CUDA</td><td>' + dot(cuda) + '</td><td>' + sparkSVG(bk.cuda) + '</td></tr>' +
+            '<tr><td>Mumax3</td><td>' + dot(mumax) + '</td><td>' + sparkSVG(bk.mumax) + '</td></tr>' +
+            '</table>' +
+            sparkAxis() +
+            '<div class="metrics">' +
+            '<div class="metric"><span class="label">CPU</span><span class="value">' + cpuUtil + '</span></div>' +
+            '<div class="metric"><span class="label">GPU Util</span><span class="value">' + gpuUtil + '</span></div>' +
+            '<div class="metric"><span class="label">RAM Free</span><span class="value">' + ramStr + '</span></div>' +
+            '<div class="metric"><span class="label">GPUs</span><span class="value">' + gpuStr + '</span></div>' +
+            '</div>' +
+            '<div class="hw-info">' + gpuNames + '</div>' +
+            '<div class="slo">' +
+            '<span>24h: <b>' + up24 + '</b></span>' +
+            '<span>7d: <b>' + up7d + '</b></span>' +
+            '<span>30d: <b>' + up30d + '</b></span>' +
+            '<span>All: <b>' + upAll + '</b></span>' +
+            '</div></div>';
+    }
+    return html;
+}
+
+function renderIncidents(incidents) {
+    if (!incidents || !incidents.length) {
+        return '<p style="color:var(--text-dim);padding:12px;">No incidents recorded yet.</p>';
+    }
+    let rows = '';
+    const recent = incidents.slice().reverse().slice(0, 50);
+    for (const inc of recent) {
+        const arrow = inc.d === 'up'
+            ? '<span class="dot green"></span> recovered'
+            : '<span class="dot red"></span> down';
+        rows += '<tr><td>' + formatTime(inc.ts) + '</td><td>' + inc.s +
+            '</td><td>' + inc.c + '</td><td>' + arrow + '</td></tr>';
+    }
+    return '<table class="data"><thead><tr><th>Time</th><th>Server</th><th>Check</th><th>Status</th></tr></thead><tbody>' +
+        rows + '</tbody></table>';
+}
+
+function renderHistory(entries) {
+    if (!entries || !entries.length) {
+        return '<p style="color:var(--text-dim);padding:12px;">No history yet.</p>';
+    }
+    const recent = entries.slice(-100).reverse();
+    let rows = '';
+    for (const e of recent) {
+        const ts = new Date(e.t * 1000).toISOString();
+        rows += '<tr>' +
+            '<td>' + formatTime(ts) + '</td><td>' + e.s + '</td>' +
+            '<td>' + dot(e.on) + '</td><td>' + dot(e.cuda) + '</td><td>' + dot(e.mumax) + '</td>' +
+            '<td>' + vna(e.gpu_u) + '</td><td>' + vna(e.cpu_u) + '</td>' +
+            '<td>' + vna(e.ram_f) + '/' + vna(e.ram_t) + '</td>' +
+            '<td>' + vna(e.gpu_fc) + '/' + vna(e.gpu_c) + '</td></tr>';
+    }
+    return '<table class="data"><thead><tr>' +
+        '<th>Time</th><th>Server</th><th>Online</th><th>CUDA</th><th>Mumax3</th>' +
+        '<th>GPU %</th><th>CPU %</th><th>RAM (free/total)</th><th>GPUs (free/total)</th>' +
+        '</tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+// ── Data fetching ──
+
+async function fetchJSON(url) {
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    return r.json();
+}
+
+async function fetchAll() {
+    const [liveArr, history, incidents] = await Promise.all([
+        Promise.all(SERVERS.map(s => fetchJSON(BASE + '/data/live/' + s + '.json'))),
+        fetchJSON(BASE + '/data/history.json'),
+        fetchJSON(BASE + '/data/incidents.json'),
+    ]);
+    const live = {};
+    liveArr.forEach((d, i) => { if (d) live[SERVERS[i]] = d; });
+    return {
+        live: live,
+        history: history || { entries: [] },
+        incidents: incidents || { incidents: [] },
+    };
+}
+
+// ── Main ──
+
+async function loadDashboard() {
+    try {
+        const data = await fetchAll();
+        document.getElementById('cards').innerHTML = renderCards(data.live, data.history.entries || []);
+        document.getElementById('incidents').innerHTML = renderIncidents(data.incidents.incidents || []);
+        document.getElementById('history').innerHTML = renderHistory(data.history.entries || []);
+        const now = new Date();
+        document.getElementById('updated').textContent = 'Loaded: ' +
+            fmtDate(now, 'America/Chicago') + ' ' +
+            now.toLocaleString('en-US', { timeZone: 'America/Chicago', hour: '2-digit', minute: '2-digit', hour12: false, timeZoneName: 'short' });
+    } catch (err) {
+        document.getElementById('updated').textContent = 'Error: ' + err.message;
+    }
+}
+
+loadDashboard();
+setInterval(loadDashboard, REFRESH_MS);
+</script>
 </body>
 </html>
