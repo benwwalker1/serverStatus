@@ -141,15 +141,6 @@ function timeAgo(epochSec) {
 
 // ── Sparkline ──
 
-function getMidnightCTEpoch() {
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
-    const utcD = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
-    const ctD = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-    const offsetMs = utcD - ctD;
-    return Math.floor((new Date(dateStr + 'T00:00:00Z').getTime() + offsetMs) / 1000);
-}
-
 function buildBuckets(entries, server) {
     const nowSec = Math.floor(Date.now() / 1000);
     const startSec = nowSec - 7 * 86400;
@@ -176,23 +167,12 @@ function sparkSVG(buckets) {
         const w = (168 / n + 0.3).toFixed(2);
         svg += '<rect x="' + x + '" y="0" width="' + w + '" height="16" fill="' + color + '"/>';
     }
-    const nowSec = Math.floor(Date.now() / 1000);
-    const startSec = nowSec - 7 * 86400;
-    const pct = (getMidnightCTEpoch() - startSec) / (7 * 86400);
-    if (pct > 0.01 && pct < 0.99) {
-        const x = (pct * 168).toFixed(1);
-        svg += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="16" stroke="#94a3b8" stroke-width="0.7" stroke-dasharray="2,1.5"/>';
-    }
     return '<svg viewBox="0 0 168 16" preserveAspectRatio="none" class="sparkline">' + svg + '</svg>';
 }
 
 function sparkAxis() {
-    const nowSec = Math.floor(Date.now() / 1000);
-    const startSec = nowSec - 7 * 86400;
-    const todayPct = ((getMidnightCTEpoch() - startSec) / (7 * 86400) * 100).toFixed(1);
     return '<div class="spark-axis">' +
         '<span style="left:0">7d ago</span>' +
-        '<span style="left:' + todayPct + '%;transform:translateX(-50%)">today</span>' +
         '<span style="right:0">now</span>' +
         '</div>';
 }
