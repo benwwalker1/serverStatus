@@ -227,11 +227,21 @@ def generate_html(live, rows):
             else:
                 cuda_ok = "0"
                 mumax_ok = "0"
-                gpu_util = cpu_util = ram_str = gpu_str = "N/A"
-                gpu_names = "N/A"
-                # Find last seen from CSV
+                gpu_util = cpu_util = "N/A"
+                # Fall back to most recent CSV data for hardware info
                 srv_rows = [r for r in rows if r["server"] == srv and r["online"] == "1"]
-                last_seen = format_time(srv_rows[-1]["timestamp_utc"]) if srv_rows else "Never"
+                if srv_rows:
+                    last_row = srv_rows[-1]
+                    last_seen = format_time(last_row["timestamp_utc"])
+                    ram_t = val_or_na(last_row.get("ram_total_gb"))
+                    ram_str = f"{ram_t} GB (last known)" if ram_t != "N/A" else "N/A"
+                    gpu_c = val_or_na(last_row.get("gpu_count"))
+                    gpu_str = f"{gpu_c} total (last known)" if gpu_c != "N/A" else "N/A"
+                    gpu_names = val_or_na(last_row.get("gpu_names")).replace(";", ", ")
+                else:
+                    last_seen = "Never"
+                    ram_str = gpu_str = "N/A"
+                    gpu_names = "N/A"
 
             online_spark = get_sparkline(rows, srv, "online")
             cuda_spark = get_sparkline(rows, srv, "cuda_ok")
