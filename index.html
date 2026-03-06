@@ -67,7 +67,7 @@ footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding
 <div class="container">
     <header>
         <h1>Lab Server Status</h1>
-        <span class="updated">Dashboard built: 2026-03-06T16:42:55Z</span>
+        <span class="updated">Dashboard built: 2026-03-06T16:45:11Z</span>
     </header>
 
     <div class="grid">
@@ -104,7 +104,7 @@ footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding
                     <span class="badge badge-up">ONLINE</span>
                 </div>
                 <div class="card-body">
-                    <div class="last-seen">Last report: 2026-03-06T16:40:01Z <span class="age">(2m ago)</span></div>
+                    <div class="last-seen">Last report: 2026-03-06T16:40:01Z <span class="age">(5m ago)</span></div>
                     <table class="checks">
                         <tr><td>Online</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
                         <tr><td>CUDA</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
@@ -130,14 +130,14 @@ footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding
                     <span class="badge badge-up">ONLINE</span>
                 </div>
                 <div class="card-body">
-                    <div class="last-seen">Last report: 2026-03-06T16:42:45Z <span class="age">(10s ago)</span></div>
+                    <div class="last-seen">Last report: 2026-03-06T16:45:02Z <span class="age">(9s ago)</span></div>
                     <table class="checks">
-                        <tr><td>Online</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>CUDA</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
-                        <tr><td>Mumax3</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="120.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>Online</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>CUDA</td><td><span class="dot green"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#22c55e" /></svg></td></tr>
+                        <tr><td>Mumax3</td><td><span class="dot red"></span></td><td><svg width="120" height="20" class="sparkline"><rect x="0.0" y="0" width="60.0" height="20" fill="#22c55e" /><rect x="60.0" y="0" width="60.0" height="20" fill="#ef4444" /></svg></td></tr>
                     </table>
                     <div class="metrics">
-                        <div class="metric"><span class="label">CPU</span><span class="value">50.3%</span></div>
+                        <div class="metric"><span class="label">CPU</span><span class="value">51.1%</span></div>
                         <div class="metric"><span class="label">GPU Util</span><span class="value">0%</span></div>
                         <div class="metric"><span class="label">RAM Free</span><span class="value">18.5 / 31.0 GB</span></div>
                         <div class="metric"><span class="label">GPUs</span><span class="value">2 / 2 free</span></div>
@@ -182,7 +182,8 @@ footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding
         <div class="table-wrap">
             <table class="data">
                 <thead><tr><th>Time (UTC)</th><th>Server</th><th>Check</th><th>Status</th></tr></thead>
-                <tbody><tr><td>2026-03-06T16:40:01Z</td><td>nsc2</td><td>Mumax3</td><td><span class="dot red"></span> down</td></tr></tbody>
+                <tbody><tr><td>2026-03-06T16:45:02Z</td><td>nsc3</td><td>Mumax3</td><td><span class="dot red"></span> down</td></tr>
+<tr><td>2026-03-06T16:40:01Z</td><td>nsc2</td><td>Mumax3</td><td><span class="dot red"></span> down</td></tr></tbody>
             </table>
             
         </div>
@@ -199,6 +200,17 @@ footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding
                         <th>GPU %</th><th>CPU %</th><th>RAM (free/total)</th><th>GPUs (free/total)</th>
                     </tr></thead>
                     <tbody><tr>
+            <td>2026-03-06T16:45:02Z</td>
+            <td>nsc3</td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot green"></span></td>
+            <td><span class="dot red"></span></td>
+            <td>0</td>
+            <td>51.1</td>
+            <td>18.5/31.0</td>
+            <td>2/2</td>
+        </tr>
+<tr>
             <td>2026-03-06T16:42:45Z</td>
             <td>nsc3</td>
             <td><span class="dot green"></span></td>
