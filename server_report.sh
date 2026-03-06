@@ -49,7 +49,7 @@ fi
 # Mumax3
 mumax_ok=0
 if command -v mumax3 >/dev/null 2>&1; then
-  if mumax3 -version >/dev/null 2>&1 || mumax3 -v >/dev/null 2>&1; then
+  if mumax3 -test >/dev/null 2>&1; then
     mumax_ok=1
   fi
 fi
