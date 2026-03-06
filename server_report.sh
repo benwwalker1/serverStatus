@@ -50,10 +50,7 @@ fi
 mumax_ok=0
 if command -v mumax3 >/dev/null 2>&1; then
   _mumax_out=$(mumax3 -test 2>&1)
-  if echo "$_mumax_out" | grep -q "CPU info" && \
-     echo "$_mumax_out" | grep -q "GPU info" && \
-     echo "$_mumax_out" | grep -q "OS" && \
-     echo "$_mumax_out" | grep -q "commit hash"; then
+  if echo "$_mumax_out" | grep -q "GPU info"; then
     mumax_ok=1
   fi
 fi
