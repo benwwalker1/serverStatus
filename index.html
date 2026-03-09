@@ -335,7 +335,7 @@ function renderHistory(entries) {
 // ── Data fetching ──
 
 async function fetchJSON(url) {
-    const r = await fetch(url);
+    const r = await fetch(url + '?_=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) return null;
     return r.json();
 }
