@@ -224,7 +224,7 @@ function renderCards(liveMap, entries) {
             ? '<span class="badge badge-up">ONLINE</span>'
             : '<span class="badge badge-down">OFFLINE</span>';
 
-        let lastSeen, cuda, mumax, cpuUtil, gpuUtil, ramStr, gpuStr, gpuNames, ageStr;
+        let lastSeen, cuda, mumax, cpuUtil, gpuUtil, ramStr, gpuStr, gpuNames, ageStr, mumaxVer, cudaDriver;
 
         if (data && isOnline) {
             cuda = data.cuda_ok;
@@ -236,10 +236,13 @@ function renderCards(liveMap, entries) {
             const gf = vna(data.gpu_free_count), gc = vna(data.gpu_count);
             gpuStr = (gf !== 'N/A' && gc !== 'N/A') ? gf + ' / ' + gc + ' free' : 'N/A';
             gpuNames = vna(data.gpu_names);
+            mumaxVer = vna(data.mumax3_version);
+            cudaDriver = vna(data.cuda_driver_version);
             lastSeen = formatTime(data.timestamp_utc);
             ageStr = timeAgo(data.timestamp_epoch);
         } else {
             cuda = 0; mumax = 0; cpuUtil = 'N/A'; gpuUtil = 'N/A';
+            mumaxVer = 'N/A'; cudaDriver = 'N/A';
             const hist = findLastOnline(entries, srv);
             if (hist) {
                 lastSeen = formatTime(new Date(hist.t * 1000).toISOString());
@@ -249,6 +252,8 @@ function renderCards(liveMap, entries) {
                 const gc = vna(hist.gpu_c);
                 gpuStr = gc !== 'N/A' ? gc + ' total (last known)' : 'N/A';
                 gpuNames = vna(hist.gpu_n);
+                mumaxVer = vna(hist.mx_v);
+                cudaDriver = vna(hist.cd_v);
             } else {
                 lastSeen = 'Never'; ageStr = '';
                 ramStr = gpuStr = gpuNames = 'N/A';
@@ -278,6 +283,7 @@ function renderCards(liveMap, entries) {
             '<div class="metric"><span class="label">GPUs</span><span class="value">' + gpuStr + '</span></div>' +
             '</div>' +
             '<div class="hw-info">' + gpuNames + '</div>' +
+            '<div class="hw-info">Mumax3 v' + mumaxVer + ' &middot; CUDA Driver ' + cudaDriver + '</div>' +
             '<div class="slo">' +
             '<span>24h: <b>' + up24 + '</b></span>' +
             '<span>7d: <b>' + up7d + '</b></span>' +

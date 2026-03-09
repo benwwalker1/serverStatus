@@ -20,6 +20,7 @@ CSV_HEADER = [
     "timestamp_utc", "timestamp_epoch", "server", "online",
     "cuda_ok", "mumax3_ok", "gpu_util_pct", "cpu_util_pct",
     "ram_free_gb", "ram_total_gb", "gpu_count", "gpu_free_count", "gpu_names",
+    "mumax3_version", "cuda_driver_version",
 ]
 
 
@@ -85,6 +86,8 @@ def append_new_reports(live, existing_rows):
             "gpu_count": _v("gpu_count"),
             "gpu_free_count": _v("gpu_free_count"),
             "gpu_names": _v("gpu_names"),
+            "mumax3_version": _v("mumax3_version"),
+            "cuda_driver_version": _v("cuda_driver_version"),
         }
         new_rows.append(row)
     if new_rows:
@@ -144,6 +147,8 @@ def generate_history_json(rows):
             "gpu_c": _intval(r.get("gpu_count")),
             "gpu_fc": _intval(r.get("gpu_free_count")),
             "gpu_n": r.get("gpu_names") if r.get("gpu_names") not in ("NA", "", "None", None) else None,
+            "mx_v": r.get("mumax3_version") if r.get("mumax3_version") not in ("NA", "", "None", None) else None,
+            "cd_v": r.get("cuda_driver_version") if r.get("cuda_driver_version") not in ("NA", "", "None", None) else None,
         })
 
     with open(HISTORY_JSON, "w") as f:

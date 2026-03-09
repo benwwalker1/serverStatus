@@ -48,10 +48,18 @@ fi
 
 # Mumax3 — check for expected output lines rather than exit code
 mumax_ok=0
+mumax_version="null"
+cuda_driver="null"
 if command -v mumax3 >/dev/null 2>&1; then
-  _mumax_out=$(mumax3 -test 2>&1)
-  if echo "$_mumax_out" | grep -q "GPU info"; then
+  _mumax_out=$(mumax3 -test 2>&1 || true)
+  if echo "$_mumax_out" | grep -q "//GPU info:"; then
     mumax_ok=1
+    # Extract CUDA driver version from "CUDA Driver X.Y"
+    _cd=$(echo "$_mumax_out" | grep -oP 'CUDA Driver \K[0-9]+\.[0-9]+' | head -1)
+    if [ -n "$_cd" ]; then cuda_driver="\"$_cd\""; fi
+    # Extract mumax version from "mumax 3.xx"
+    _mv=$(echo "$_mumax_out" | grep -oP '//mumax \K[0-9]+\.[0-9]+' | head -1)
+    if [ -n "$_mv" ]; then mumax_version="\"$_mv\""; fi
   fi
 fi
 
@@ -83,7 +91,7 @@ fi
 # --- Debug output ---
 echo "  CUDA:    ${cuda_ok} (GPUs: ${gpu_count}, free: ${gpu_free}, util: ${gpu_util}%)"
 echo "  GPU:     ${gpu_names}"
-echo "  Mumax3:  ${mumax_ok}"
+echo "  Mumax3:  ${mumax_ok} (version: ${mumax_version}, CUDA driver: ${cuda_driver})"
 echo "  CPU:     ${cpu_util}%"
 echo "  RAM:     ${ram_free} / ${ram_total} GB"
 
@@ -102,7 +110,9 @@ json=$(cat <<ENDJSON
   "ram_total_gb": ${ram_total},
   "gpu_count": ${gpu_count},
   "gpu_free_count": ${gpu_free},
-  "gpu_names": ${gpu_names}
+  "gpu_names": ${gpu_names},
+  "mumax3_version": ${mumax_version},
+  "cuda_driver_version": ${cuda_driver}
 }
 ENDJSON
 )
