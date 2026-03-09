@@ -47,11 +47,12 @@ if command -v nvidia-smi >/dev/null 2>&1; then
 fi
 
 # Mumax3 — check for expected output lines rather than exit code
+MUMAX3_BIN="/usr/local/bin/mumax3"
 mumax_ok=0
 mumax_version="null"
 cuda_driver="null"
-if command -v mumax3 >/dev/null 2>&1; then
-  _mumax_out=$(mumax3 -test 2>&1 || true)
+if [ -x "$MUMAX3_BIN" ]; then
+  _mumax_out=$($MUMAX3_BIN -test 2>&1 || true)
   if echo "$_mumax_out" | grep -q "//GPU info:"; then
     mumax_ok=1
     # Extract CUDA driver version from "CUDA Driver X.Y"
