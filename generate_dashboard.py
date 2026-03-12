@@ -20,7 +20,7 @@ CSV_HEADER = [
     "timestamp_utc", "timestamp_epoch", "server", "online",
     "cuda_ok", "mumax3_ok", "gpu_util_pct", "cpu_util_pct",
     "ram_free_gb", "ram_total_gb", "gpu_count", "gpu_free_count", "gpu_names",
-    "mumax3_version", "cuda_driver_version",
+    "mumax3_version", "cuda_driver_version", "ssh_checks",
 ]
 
 
@@ -30,6 +30,24 @@ def ensure_dirs():
     if not os.path.exists(CSV_FILE):
         with open(CSV_FILE, "w", newline="") as f:
             csv.writer(f).writerow(CSV_HEADER)
+    else:
+        # Migrate CSV header if new columns were added
+        with open(CSV_FILE, newline="") as f:
+            reader = csv.reader(f)
+            existing_header = next(reader, [])
+        if existing_header != CSV_HEADER:
+            rows = load_csv()
+            with open(CSV_FILE, "w", newline="") as f:
+                w = csv.DictWriter(f, fieldnames=CSV_HEADER, extrasaction="ignore")
+                w.writeheader()
+                for row in rows:
+                    # Remove None keys (from DictReader overflow) and fill missing cols
+                    clean = {k: v for k, v in row.items() if k is not None}
+                    for col in CSV_HEADER:
+                        if col not in clean:
+                            clean[col] = ""
+                    w.writerow(clean)
+            print(f"Migrated CSV header: added {set(CSV_HEADER) - set(existing_header)}")
 
 
 def load_live():
@@ -61,11 +79,44 @@ def last_csv_epoch(rows, server):
     return 0
 
 
+def _backfill_row(srv_name, hb_epoch):
+    """Create a minimal CSV row for a heartbeat backfill timestamp."""
+    hb_ts = datetime.fromtimestamp(hb_epoch, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return {
+        "timestamp_utc": hb_ts,
+        "timestamp_epoch": str(hb_epoch),
+        "server": srv_name,
+        "online": "1",
+        "cuda_ok": "NA",
+        "mumax3_ok": "NA",
+        "gpu_util_pct": "NA",
+        "cpu_util_pct": "NA",
+        "ram_free_gb": "NA",
+        "ram_total_gb": "NA",
+        "gpu_count": "NA",
+        "gpu_free_count": "NA",
+        "gpu_names": "NA",
+        "mumax3_version": "NA",
+        "cuda_driver_version": "NA",
+        "ssh_checks": "NA",
+    }
+
+
 def append_new_reports(live, existing_rows):
     new_rows = []
     for srv_name, data in live.items():
         epoch = int(data["timestamp_epoch"])
-        if epoch <= last_csv_epoch(existing_rows, srv_name):
+        last_ep = last_csv_epoch(existing_rows, srv_name)
+
+        # Process heartbeat backfill (timestamps from failed pushes)
+        for hb_epoch in data.get("heartbeat_backfill", []):
+            hb_epoch = int(hb_epoch)
+            if hb_epoch <= last_ep or hb_epoch >= epoch:
+                continue
+            new_rows.append(_backfill_row(srv_name, hb_epoch))
+            last_ep = max(last_ep, hb_epoch)
+
+        if epoch <= last_csv_epoch(existing_rows + new_rows, srv_name):
             continue
 
         def _v(key):
@@ -88,6 +139,7 @@ def append_new_reports(live, existing_rows):
             "gpu_names": _v("gpu_names"),
             "mumax3_version": _v("mumax3_version"),
             "cuda_driver_version": _v("cuda_driver_version"),
+            "ssh_checks": json.dumps(data.get("ssh_checks", {})),
         }
         new_rows.append(row)
     if new_rows:
@@ -138,8 +190,8 @@ def generate_history_json(rows):
             "t": int(r["timestamp_epoch"]),
             "s": r["server"],
             "on": int(r["online"]) if r["online"] not in ("NA", "") else 0,
-            "cuda": int(r["cuda_ok"]) if r["cuda_ok"] not in ("NA", "") else 0,
-            "mumax": int(r["mumax3_ok"]) if r["mumax3_ok"] not in ("NA", "") else 0,
+            "cuda": int(r["cuda_ok"]) if r["cuda_ok"] not in ("NA", "") else None,
+            "mumax": int(r["mumax3_ok"]) if r["mumax3_ok"] not in ("NA", "") else None,
             "gpu_u": _num(r.get("gpu_util_pct")),
             "cpu_u": _num(r.get("cpu_util_pct")),
             "ram_f": _num(r.get("ram_free_gb")),
@@ -149,6 +201,7 @@ def generate_history_json(rows):
             "gpu_n": r.get("gpu_names") if r.get("gpu_names") not in ("NA", "", "None", None) else None,
             "mx_v": r.get("mumax3_version") if r.get("mumax3_version") not in ("NA", "", "None", None) else None,
             "cd_v": r.get("cuda_driver_version") if r.get("cuda_driver_version") not in ("NA", "", "None", None) else None,
+            "ssh": json.loads(r["ssh_checks"]) if r.get("ssh_checks") not in ("NA", "", "None", None) else None,
         })
 
     with open(HISTORY_JSON, "w") as f:
@@ -209,9 +262,13 @@ def generate_incidents_json(rows):
                 stale_state[other_srv] = True
 
         # Normal state-change detection
+        # For backfill rows (cuda_ok/mumax3_ok = "NA"), preserve previous state
         checks = {"Online": r["online"], "CUDA": r["cuda_ok"], "Mumax3": r["mumax3_ok"]}
         if srv in prev:
             for name, val in checks.items():
+                if val == "NA":
+                    checks[name] = prev[srv][name]  # carry forward previous state
+                    continue
                 if prev[srv][name] != val:
                     incidents.append({
                         "t": epoch,

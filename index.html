@@ -155,8 +155,9 @@ function buildBuckets(entries, server) {
         const h = Math.floor((e.t - startSec) / 3600);
         if (h >= 0 && h < HOURS_7D) {
             out.on[h] = e.on;
-            out.cuda[h] = e.cuda;
-            out.mumax[h] = e.mumax;
+            // Backfill entries have null cuda/mumax — only update if we have real data
+            if (e.cuda !== null) out.cuda[h] = e.cuda;
+            if (e.mumax !== null) out.mumax[h] = e.mumax;
         }
     }
     // After the first report, treat gaps as down — but only if the gap spans
@@ -258,7 +259,7 @@ function renderCards(liveMap, entries) {
             ? '<span class="badge badge-up">ONLINE</span>'
             : '<span class="badge badge-down">OFFLINE</span>';
 
-        let lastSeen, cuda, mumax, cpuUtil, gpuUtil, ramStr, gpuStr, gpuNames, ageStr, mumaxVer, cudaDriver;
+        let lastSeen, cuda, mumax, cpuUtil, gpuUtil, ramStr, gpuStr, gpuNames, ageStr, mumaxVer, cudaDriver, sshHtml;
 
         if (data && isOnline) {
             cuda = data.cuda_ok;
@@ -294,6 +295,17 @@ function renderCards(liveMap, entries) {
             }
         }
 
+        // SSH reachability: who can reach this server?
+        sshHtml = '';
+        for (const other of SERVERS) {
+            if (other === srv) continue;
+            const otherData = liveMap[other];
+            if (otherData && otherData.ssh_checks && srv in otherData.ssh_checks) {
+                sshHtml += '<span>' + other + ' ' + dot(otherData.ssh_checks[srv]) + '</span> ';
+            }
+        }
+        if (!sshHtml) sshHtml = 'N/A';
+
         const bk = buildBuckets(entries, srv);
         const up24 = uptimePct(entries, srv, 24);
         const up7d = uptimePct(entries, srv, 168);
@@ -318,6 +330,7 @@ function renderCards(liveMap, entries) {
             '</div>' +
             '<div class="hw-info">' + gpuNames + '</div>' +
             '<div class="hw-info">Mumax3 v' + mumaxVer + ' &middot; CUDA Driver ' + cudaDriver + '</div>' +
+            '<div class="hw-info">SSH from: ' + sshHtml + '</div>' +
             '<div class="slo">' +
             '<span>24h: <b>' + up24 + '</b></span>' +
             '<span>7d: <b>' + up7d + '</b></span>' +

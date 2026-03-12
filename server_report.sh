@@ -9,6 +9,25 @@ GITHUB_TOKEN="${GITHUB_TOKEN:?Set GITHUB_TOKEN}"
 FILE_PATH="data/live/${SERVER_NAME}.json"
 API_URL="https://api.github.com/repos/${REPO}/contents/${FILE_PATH}"
 
+# --- Logging setup ---
+
+LOG_DIR="/localdisk/bww190000/serverLogs"
+mkdir -p "$LOG_DIR"
+LOG_FILE="${LOG_DIR}/${SERVER_NAME}_push.log"
+HEARTBEAT_FILE="${LOG_DIR}/${SERVER_NAME}_heartbeat.log"
+
+log_msg() {
+    echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] $1" >> "$LOG_FILE"
+}
+
+# Rotate log if > 1MB
+if [ -f "$LOG_FILE" ]; then
+  _log_size=$(stat -c%s "$LOG_FILE" 2>/dev/null || stat -f%z "$LOG_FILE" 2>/dev/null || echo 0)
+  if [ "$_log_size" -gt 1048576 ]; then
+    mv "$LOG_FILE" "${LOG_FILE}.old"
+  fi
+fi
+
 # --- Collect metrics ---
 
 ts_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -89,12 +108,43 @@ if [ -f /proc/meminfo ]; then
   fi
 fi
 
+# --- SSH connectivity checks ---
+
+ALL_SERVERS="nsc1 nsc2 nsc3 nsc4"
+ssh_results=""
+
+for target in $ALL_SERVERS; do
+  [ "$target" = "$SERVER_NAME" ] && continue
+  if ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new "$target" "echo ok" >/dev/null 2>&1; then
+    _ssh_val=1
+  else
+    _ssh_val=0
+  fi
+  if [ -n "$ssh_results" ]; then
+    ssh_results="${ssh_results}, \"${target}\": ${_ssh_val}"
+  else
+    ssh_results="\"${target}\": ${_ssh_val}"
+  fi
+done
+
+# --- Heartbeat: record that we're alive ---
+
+echo "$ts_epoch" >> "$HEARTBEAT_FILE"
+
+# Read pending heartbeat epochs (excluding current) for backfill
+backfill_epochs=""
+if [ -f "$HEARTBEAT_FILE" ]; then
+  backfill_epochs=$(grep -v "^${ts_epoch}$" "$HEARTBEAT_FILE" | sort -n | tr '\n' ',' | sed 's/,$//')
+fi
+
 # --- Debug output ---
 echo "  CUDA:    ${cuda_ok} (GPUs: ${gpu_count}, free: ${gpu_free}, util: ${gpu_util}%)"
 echo "  GPU:     ${gpu_names}"
 echo "  Mumax3:  ${mumax_ok} (version: ${mumax_version}, CUDA driver: ${cuda_driver})"
 echo "  CPU:     ${cpu_util}%"
 echo "  RAM:     ${ram_free} / ${ram_total} GB"
+echo "  SSH:     ${ssh_results}"
+echo "  Backfill: ${backfill_epochs:-none}"
 
 # --- Build JSON ---
 
@@ -113,7 +163,9 @@ json=$(cat <<ENDJSON
   "gpu_free_count": ${gpu_free},
   "gpu_names": ${gpu_names},
   "mumax3_version": ${mumax_version},
-  "cuda_driver_version": ${cuda_driver}
+  "cuda_driver_version": ${cuda_driver},
+  "ssh_checks": {${ssh_results}},
+  "heartbeat_backfill": [${backfill_epochs}]
 }
 ENDJSON
 )
@@ -134,19 +186,31 @@ for attempt in 1 2 3; do
     payload="{\"message\":\"${SERVER_NAME} report ${ts_utc}\",\"content\":\"${content_b64}\"}"
   fi
 
-  http_code=$(curl -s -o /dev/null -w "%{http_code}" -X PUT \
+  _resp_body=$(mktemp)
+  http_code=$(curl -s -o "$_resp_body" -w "%{http_code}" -X PUT \
     -H "Authorization: token ${GITHUB_TOKEN}" \
     -H "Accept: application/vnd.github.v3+json" \
     "$API_URL" \
     -d "$payload")
 
   if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
+    log_msg "OK: HTTP ${http_code}"
     echo "[${ts_utc}] ${SERVER_NAME}: uploaded OK"
+    # Clear heartbeat file on successful push
+    > "$HEARTBEAT_FILE"
+    rm -f "$_resp_body"
     exit 0
   elif [ "$http_code" = "409" ] && [ "$attempt" -lt 3 ]; then
+    log_msg "RETRY ${attempt}/3: HTTP 409 conflict"
+    rm -f "$_resp_body"
     sleep $((RANDOM % 5 + 2))
   else
-    echo "[${ts_utc}] ${SERVER_NAME}: upload failed (HTTP ${http_code})" >&2
-    exit 1
+    _err=$(head -c 200 "$_resp_body" 2>/dev/null)
+    log_msg "FAIL: HTTP ${http_code} (attempt ${attempt}/3) ${_err}"
+    rm -f "$_resp_body"
+    if [ "$attempt" -eq 3 ] || [ "$http_code" != "409" ]; then
+      echo "[${ts_utc}] ${SERVER_NAME}: upload failed (HTTP ${http_code})" >&2
+      exit 1
+    fi
   fi
 done
