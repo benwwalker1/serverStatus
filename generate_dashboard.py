@@ -160,25 +160,88 @@ def generate_history_json(rows):
     print(f"History JSON: {len(entries)} hourly entries")
 
 
+STALE_SECONDS = 7200  # 2 hours without a report = server considered down
+                      # (matches sparkline: 2+ consecutive null hourly buckets)
+
+
 def generate_incidents_json(rows):
-    """Pre-compute incidents from full CSV history, keep last 200."""
+    """Pre-compute incidents from full CSV history, keep last 200.
+
+    Also generates 'down' incidents when a server stops reporting for >30 min,
+    and 'up' incidents when it resumes.
+    """
     prev = {}
+    last_epoch = {}
+    stale_state = {}  # server -> True if currently marked stale
     incidents = []
     for r in rows:
         srv = r["server"]
+        epoch = int(r["timestamp_epoch"])
+
+        # Check if this server was stale and is now reporting again
+        if srv in stale_state and stale_state[srv]:
+            ts = datetime.fromtimestamp(epoch, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            for name in ("Online", "CUDA", "Mumax3"):
+                incidents.append({
+                    "t": epoch,
+                    "ts": ts,
+                    "s": srv,
+                    "c": name,
+                    "d": "up",
+                })
+            stale_state[srv] = False
+
+        # Check all other servers for staleness at this timestamp
+        for other_srv, other_epoch in list(last_epoch.items()):
+            if other_srv == srv:
+                continue
+            if not stale_state.get(other_srv) and (epoch - other_epoch) > STALE_SECONDS:
+                stale_ts = datetime.fromtimestamp(
+                    other_epoch + STALE_SECONDS, tz=timezone.utc
+                ).strftime("%Y-%m-%dT%H:%M:%SZ")
+                for name in ("Online", "CUDA", "Mumax3"):
+                    incidents.append({
+                        "t": other_epoch + STALE_SECONDS,
+                        "ts": stale_ts,
+                        "s": other_srv,
+                        "c": name,
+                        "d": "down",
+                    })
+                stale_state[other_srv] = True
+
+        # Normal state-change detection
         checks = {"Online": r["online"], "CUDA": r["cuda_ok"], "Mumax3": r["mumax3_ok"]}
         if srv in prev:
             for name, val in checks.items():
                 if prev[srv][name] != val:
                     incidents.append({
-                        "t": int(r["timestamp_epoch"]),
+                        "t": epoch,
                         "ts": r["timestamp_utc"],
                         "s": srv,
                         "c": name,
                         "d": "up" if val == "1" else "down",
                     })
         prev[srv] = checks
+        last_epoch[srv] = epoch
 
+    # Check for servers still stale at end of history (i.e., right now)
+    now_epoch = int(datetime.now(timezone.utc).timestamp())
+    for srv, epoch in last_epoch.items():
+        if not stale_state.get(srv) and (now_epoch - epoch) > STALE_SECONDS:
+            stale_ts = datetime.fromtimestamp(
+                epoch + STALE_SECONDS, tz=timezone.utc
+            ).strftime("%Y-%m-%dT%H:%M:%SZ")
+            for name in ("Online", "CUDA", "Mumax3"):
+                incidents.append({
+                    "t": epoch + STALE_SECONDS,
+                    "ts": stale_ts,
+                    "s": srv,
+                    "c": name,
+                    "d": "down",
+                })
+
+    # Sort by timestamp and keep last 200
+    incidents.sort(key=lambda x: x["t"])
     incidents = incidents[-200:]
     with open(INCIDENTS_JSON, "w") as f:
         json.dump({"incidents": incidents}, f, separators=(",", ":"))
