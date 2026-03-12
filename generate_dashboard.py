@@ -241,7 +241,22 @@ def generate_incidents_json(rows):
 
     # Sort by timestamp and keep last 200
     incidents.sort(key=lambda x: x["t"])
-    incidents = incidents[-200:]
+
+    # Deduplicate: if Online changes, suppress CUDA/Mumax3; if CUDA changes, suppress Mumax3
+    filtered = []
+    groups = {}  # (t, s, d) -> set of categories
+    for inc in incidents:
+        key = (inc["t"], inc["s"], inc["d"])
+        groups.setdefault(key, set()).add(inc["c"])
+    for inc in incidents:
+        key = (inc["t"], inc["s"], inc["d"])
+        cats = groups[key]
+        if inc["c"] == "Mumax3" and ("Online" in cats or "CUDA" in cats):
+            continue
+        if inc["c"] == "CUDA" and "Online" in cats:
+            continue
+        filtered.append(inc)
+    incidents = filtered[-200:]
     with open(INCIDENTS_JSON, "w") as f:
         json.dump({"incidents": incidents}, f, separators=(",", ":"))
     print(f"Incidents JSON: {len(incidents)} incidents")
