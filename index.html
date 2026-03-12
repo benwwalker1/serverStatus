@@ -154,18 +154,32 @@ function buildBuckets(entries, server) {
             out.mumax[h] = e.mumax;
         }
     }
-    // After the first report, treat gaps (null) as down — but give a 30-min
-    // grace period so busy servers aren't shown as down for brief gaps.
-    // Only mark null as red for buckets older than 30 min ago.
+    // After the first report, treat gaps as down — but only if the gap spans
+    // 2+ consecutive null hours (a real outage). Isolated null hours are just
+    // monitoring misses (pipeline sampling ~1/hr) and get interpolated as up.
+    // The most recent bucket also gets a 30-min grace period.
     const cutoffBucket = Math.floor((nowSec - 1800 - startSec) / 3600);
     for (const key of ['on', 'cuda', 'mumax']) {
         let firstReport = -1;
         for (let i = 0; i < HOURS_7D; i++) {
             if (out[key][i] !== null) { firstReport = i; break; }
         }
-        if (firstReport >= 0) {
-            for (let i = firstReport; i <= Math.min(cutoffBucket, HOURS_7D - 1); i++) {
-                if (out[key][i] === null) out[key][i] = false;
+        if (firstReport < 0) continue;
+        // Find runs of consecutive nulls and only mark as down if run length >= 2
+        let i = firstReport;
+        const limit = Math.min(cutoffBucket, HOURS_7D - 1);
+        while (i <= limit) {
+            if (out[key][i] === null) {
+                // Find end of null run
+                let runStart = i;
+                while (i <= limit && out[key][i] === null) i++;
+                if (i - runStart >= 2) {
+                    // Real outage: 2+ consecutive hours without data
+                    for (let j = runStart; j < i; j++) out[key][j] = false;
+                }
+                // else: single null hour, leave as null (renders as background)
+            } else {
+                i++;
             }
         }
     }
