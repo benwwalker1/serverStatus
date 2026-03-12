@@ -19050,3 +19050,6 @@ timestamp_utc,timestamp_epoch,server,online,cuda_ok,mumax3_ok,gpu_util_pct,cpu_u
 2026-03-12T19:25:04Z,1773343504,nsc4,1,1,1,0,0.2,27.9,31.0,2,2,"NVIDIA GeForce RTX 2080 Ti, NVIDIA GeForce RTX 2080 Ti",3.11,13.1,{}
 2026-03-12T19:26:19Z,1773343579,nsc3,1,1,1,0,0.0,27.4,31.0,2,2,"NVIDIA GeForce RTX 2080 Ti, NVIDIA GeForce RTX 2080 Ti",3.10,13.1,"{""nsc1"": 0, ""nsc2"": 1, ""nsc4"": 1}"
 2026-03-12T19:27:10Z,1773343630,nsc2,1,1,1,0,0.2,27.5,31.0,1,1,NVIDIA GeForce GTX 1080 Ti,3.11,12.9,"{""nsc1"": 0, ""nsc3"": 1, ""nsc4"": 1}"
+2026-03-12T20:00:03Z,1773345603,nsc4,1,1,1,0,0.3,27.8,31.0,2,2,"NVIDIA GeForce RTX 2080 Ti, NVIDIA GeForce RTX 2080 Ti",3.11,13.1,"{""nsc1"": 0, ""nsc2"": 1, ""nsc3"": 1}"
+2026-03-12T20:00:02Z,1773345602,nsc3,1,1,1,0,1.8,27.4,31.0,2,2,"NVIDIA GeForce RTX 2080 Ti, NVIDIA GeForce RTX 2080 Ti",3.10,13.1,"{""nsc1"": 0, ""nsc2"": 1, ""nsc4"": 1}"
+2026-03-12T20:00:02Z,1773345602,nsc2,1,1,1,0,0.2,27.2,31.0,1,1,NVIDIA GeForce GTX 1080 Ti,3.11,12.9,"{""nsc1"": 0, ""nsc3"": 1, ""nsc4"": 1}"
