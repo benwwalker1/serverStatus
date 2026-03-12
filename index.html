@@ -64,6 +64,10 @@ details summary:hover { text-decoration: underline; }
 footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding: 24px 0; }
 footer a { color: var(--blue); }
 .loading { color: var(--text-dim); text-align: center; padding: 32px; }
+.incident-filters { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.incident-filters button { background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+.incident-filters button:hover { border-color: var(--blue); color: var(--text); }
+.incident-filters button.active { border-color: var(--blue); color: var(--text); background: rgba(59,130,246,0.15); }
 @media (max-width: 600px) {
     .grid { grid-template-columns: 1fr; }
     .slo { grid-template-columns: 1fr 1fr; }
@@ -84,6 +88,7 @@ footer a { color: var(--blue); }
     </div>
     <section>
         <h2>Incidents</h2>
+        <div class="incident-filters" id="incident-filters"></div>
         <div class="table-wrap" id="incidents">
             <p class="loading">Loading...</p>
         </div>
@@ -323,20 +328,57 @@ function renderCards(liveMap, entries) {
     return html;
 }
 
+let _incidentData = [];
+let _incidentFilter = 'all';
+
+function renderIncidentFilters(incidents) {
+    const servers = new Set(incidents.map(i => i.s));
+    const el = document.getElementById('incident-filters');
+    let html = '<button class="' + (_incidentFilter === 'all' ? 'active' : '') + '" data-filter="all">All</button>';
+    for (const s of SERVERS) {
+        if (servers.has(s)) {
+            html += '<button class="' + (_incidentFilter === s ? 'active' : '') + '" data-filter="' + s + '">' + s + '</button>';
+        }
+    }
+    el.innerHTML = html;
+    el.querySelectorAll('button').forEach(btn => {
+        btn.onclick = () => {
+            _incidentFilter = btn.dataset.filter;
+            renderIncidentFilters(_incidentData);
+            document.getElementById('incidents').innerHTML = renderIncidents(_incidentData);
+        };
+    });
+}
+
 function renderIncidents(incidents) {
     if (!incidents || !incidents.length) {
         return '<p style="color:var(--text-dim);padding:12px;">No incidents recorded yet.</p>';
     }
+    // Filter by server
+    let filtered = incidents;
+    if (_incidentFilter !== 'all') {
+        filtered = incidents.filter(i => i.s === _incidentFilter);
+    }
+    // Group by (check, direction) within 5-second windows
+    const groups = [];
+    for (const inc of filtered) {
+        const last = groups.length ? groups[groups.length - 1] : null;
+        if (last && last.c === inc.c && last.d === inc.d && Math.abs(inc.t - last.t) <= 5 && !last.servers.includes(inc.s)) {
+            last.servers.push(inc.s);
+        } else {
+            groups.push({ t: inc.t, ts: inc.ts, c: inc.c, d: inc.d, servers: [inc.s] });
+        }
+    }
+    const recent = groups.reverse().slice(0, 50);
     let rows = '';
-    const recent = incidents.slice().reverse().slice(0, 50);
-    for (const inc of recent) {
-        const arrow = inc.d === 'up'
+    for (const g of recent) {
+        const arrow = g.d === 'up'
             ? '<span class="dot green"></span> recovered'
             : '<span class="dot red"></span> down';
-        rows += '<tr><td>' + formatTime(inc.ts) + '</td><td>' + inc.s +
-            '</td><td>' + inc.c + '</td><td>' + arrow + '</td></tr>';
+        rows += '<tr><td>' + formatTime(g.ts) + '</td><td>' + g.servers.join(', ') +
+            '</td><td>' + g.c + '</td><td>' + arrow + '</td></tr>';
     }
-    return '<table class="data"><thead><tr><th>Time</th><th>Server</th><th>Check</th><th>Status</th></tr></thead><tbody>' +
+    return '<table class="data"><thead><tr><th>Time</th><th>Server(s)</th><th>Check</th><th>Status</th></tr></thead><tbody>' +
         rows + '</tbody></table>';
 }
 
@@ -390,7 +432,9 @@ async function loadDashboard() {
     try {
         const data = await fetchAll();
         document.getElementById('cards').innerHTML = renderCards(data.live, data.history.entries || []);
-        document.getElementById('incidents').innerHTML = renderIncidents(data.incidents.incidents || []);
+        _incidentData = data.incidents.incidents || [];
+        renderIncidentFilters(_incidentData);
+        document.getElementById('incidents').innerHTML = renderIncidents(_incidentData);
         document.getElementById('history').innerHTML = renderHistory(data.history.entries || []);
         const now = new Date();
         document.getElementById('updated').textContent = 'Loaded: ' +
