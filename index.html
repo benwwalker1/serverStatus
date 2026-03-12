@@ -154,6 +154,21 @@ function buildBuckets(entries, server) {
             out.mumax[h] = e.mumax;
         }
     }
+    // After the first report, treat gaps (null) as down — but give a 30-min
+    // grace period so busy servers aren't shown as down for brief gaps.
+    // Only mark null as red for buckets older than 30 min ago.
+    const cutoffBucket = Math.floor((nowSec - 1800 - startSec) / 3600);
+    for (const key of ['on', 'cuda', 'mumax']) {
+        let firstReport = -1;
+        for (let i = 0; i < HOURS_7D; i++) {
+            if (out[key][i] !== null) { firstReport = i; break; }
+        }
+        if (firstReport >= 0) {
+            for (let i = firstReport; i <= Math.min(cutoffBucket, HOURS_7D - 1); i++) {
+                if (out[key][i] === null) out[key][i] = false;
+            }
+        }
+    }
     return out;
 }
 
