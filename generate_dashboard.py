@@ -160,8 +160,7 @@ def generate_history_json(rows):
     print(f"History JSON: {len(entries)} hourly entries")
 
 
-STALE_SECONDS = 7200  # 2 hours without a report = server considered down
-                      # (matches sparkline: 2+ consecutive null hourly buckets)
+STALE_SECONDS = 3600  # 1 hour without a report = server considered down
 
 
 def generate_incidents_json(rows):
