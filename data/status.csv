@@ -1,24 +1,4 @@
 timestamp_utc,timestamp_epoch,server,online,cuda_ok,mumax3_ok,gpu_util_pct,cpu_util_pct,ram_free_gb,ram_total_gb,gpu_count,gpu_free_count,gpu_names,mumax3_version,cuda_driver_version,ssh_checks
-2026-02-11T21:48:40Z,1770846520,nsc1,1,1,1,0.00,0.20,NA,NA,1,NA,Tesla P100-PCIE-16GB,,,
-2026-02-11T21:48:40Z,1770846520,nsc2,1,1,1,0.00,0.60,NA,NA,1,NA,NVIDIA GeForce GTX 1080 Ti,,,
-2026-02-11T21:48:40Z,1770846520,nsc3,1,0,0,NA,0.20,NA,NA,2,NA,Failed to initialize NVML: Driver/library version mismatch;NVML library version: 590.48,,,
-2026-02-11T21:48:40Z,1770846520,nsc4,1,1,1,0.00,0.60,NA,NA,2,NA,NVIDIA GeForce RTX 2080 Ti;NVIDIA GeForce RTX 2080 Ti,,,
-2026-02-11T21:54:01Z,1770846841,nsc1,1,1,1,0.00,0.20,NA,NA,1,NA,Tesla P100-PCIE-16GB,,,
-2026-02-11T21:54:01Z,1770846841,nsc2,1,1,1,0.00,0.60,NA,NA,1,NA,NVIDIA GeForce GTX 1080 Ti,,,
-2026-02-11T21:54:01Z,1770846841,nsc3,1,0,0,NA,0.60,NA,NA,2,NA,Failed to initialize NVML: Driver/library version mismatch;NVML library version: 590.48,,,
-2026-02-11T21:54:01Z,1770846841,nsc4,1,1,1,0.00,0.40,NA,NA,2,NA,NVIDIA GeForce RTX 2080 Ti;NVIDIA GeForce RTX 2080 Ti,,,
-2026-02-11T21:59:25Z,1770847165,nsc1,1,1,1,0.00,0.40,NA,NA,1,NA,Tesla P100-PCIE-16GB,,,
-2026-02-11T21:59:25Z,1770847165,nsc2,1,1,1,0.00,0.30,NA,NA,1,NA,NVIDIA GeForce GTX 1080 Ti,,,
-2026-02-11T21:59:25Z,1770847165,nsc3,1,0,0,NA,0.40,NA,NA,2,NA,Failed to initialize NVML: Driver/library version mismatch;NVML library version: 590.48,,,
-2026-02-11T21:59:25Z,1770847165,nsc4,1,1,1,0.00,1.00,NA,NA,2,NA,NVIDIA GeForce RTX 2080 Ti;NVIDIA GeForce RTX 2080 Ti,,,
-2026-02-11T22:04:47Z,1770847487,nsc1,1,1,1,0.00,0.20,NA,NA,1,NA,Tesla P100-PCIE-16GB,,,
-2026-02-11T22:04:47Z,1770847487,nsc2,1,1,1,0.00,100.00,NA,NA,1,NA,NVIDIA GeForce GTX 1080 Ti,,,
-2026-02-11T22:04:47Z,1770847487,nsc3,1,0,0,NA,0.20,NA,NA,2,NA,Failed to initialize NVML: Driver/library version mismatch;NVML library version: 590.48,,,
-2026-02-11T22:04:47Z,1770847487,nsc4,1,1,1,0.00,0.40,NA,NA,2,NA,NVIDIA GeForce RTX 2080 Ti;NVIDIA GeForce RTX 2080 Ti,,,
-2026-02-11T22:10:16Z,1770847816,nsc1,1,1,1,0.00,0.40,NA,NA,1,NA,Tesla P100-PCIE-16GB,,,
-2026-02-11T22:10:16Z,1770847816,nsc2,1,1,1,0.00,0.30,NA,NA,1,NA,NVIDIA GeForce GTX 1080 Ti,,,
-2026-02-11T22:10:16Z,1770847816,nsc3,1,0,0,NA,100.00,NA,NA,2,NA,Failed to initialize NVML: Driver/library version mismatch;NVML library version: 590.48,,,
-2026-02-11T22:10:16Z,1770847816,nsc4,1,1,1,0.00,0.40,NA,NA,2,NA,NVIDIA GeForce RTX 2080 Ti;NVIDIA GeForce RTX 2080 Ti,,,
 2026-02-11T22:15:38Z,1770848138,nsc1,1,1,1,0.00,0.20,NA,NA,1,NA,Tesla P100-PCIE-16GB,,,
 2026-02-11T22:15:38Z,1770848138,nsc2,1,1,1,0.00,0.30,NA,NA,1,NA,NVIDIA GeForce GTX 1080 Ti,,,
 2026-02-11T22:15:38Z,1770848138,nsc3,1,0,0,NA,0.20,NA,NA,2,NA,Failed to initialize NVML: Driver/library version mismatch;NVML library version: 590.48,,,
@@ -18920,3 +18900,6 @@ timestamp_utc,timestamp_epoch,server,online,cuda_ok,mumax3_ok,gpu_util_pct,cpu_u
 2026-03-13T21:40:03Z,1773438003,nsc4,1,1,1,0,42.0,21.0,31.0,2,2,"NVIDIA GeForce RTX 2080 Ti, NVIDIA GeForce RTX 2080 Ti",3.11,13.1,"{""nsc1"": 0, ""nsc2"": 1, ""nsc3"": 1}"
 2026-03-13T21:40:02Z,1773438002,nsc3,1,1,1,0,16.8,24.2,31.0,2,2,"NVIDIA GeForce RTX 2080 Ti, NVIDIA GeForce RTX 2080 Ti",3.10,13.1,"{""nsc1"": 0, ""nsc2"": 1, ""nsc4"": 1}"
 2026-03-13T21:40:02Z,1773438002,nsc2,1,1,1,0,3.3,25.0,31.0,1,1,NVIDIA GeForce GTX 1080 Ti,3.11,12.9,"{""nsc1"": 0, ""nsc3"": 1, ""nsc4"": 1}"
+2026-03-13T22:10:04Z,1773439804,nsc4,1,1,1,0,42.7,16.3,31.0,2,2,"NVIDIA GeForce RTX 2080 Ti, NVIDIA GeForce RTX 2080 Ti",3.11,13.1,"{""nsc1"": 0, ""nsc2"": 1, ""nsc3"": 1}"
+2026-03-13T22:10:02Z,1773439802,nsc3,1,1,1,0,16.8,24.2,31.0,2,2,"NVIDIA GeForce RTX 2080 Ti, NVIDIA GeForce RTX 2080 Ti",3.10,13.1,"{""nsc1"": 0, ""nsc2"": 1, ""nsc4"": 1}"
+2026-03-13T22:10:02Z,1773439802,nsc2,1,1,1,0,1.2,25.3,31.0,1,1,NVIDIA GeForce GTX 1080 Ti,3.11,12.9,"{""nsc1"": 0, ""nsc3"": 1, ""nsc4"": 1}"
