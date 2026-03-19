@@ -25,15 +25,18 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
 .updated { color: var(--text-dim); font-size: 0.85rem; }
 #refresh-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
 #refresh-btn:hover { border-color: var(--blue); }
+.stale-banner { background: rgba(239,68,68,0.12); border: 1px solid var(--red); border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; font-size: 0.85rem; color: var(--red); display: none; }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px; }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
 .card.up { border-left: 3px solid var(--green); }
 .card.down { border-left: 3px solid var(--red); }
+.card.degraded { border-left: 3px solid var(--yellow); }
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .card-header h2 { font-size: 1.2rem; font-weight: 600; }
 .badge { font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.05em; }
 .badge-up { background: rgba(34,197,94,0.15); color: var(--green); }
 .badge-down { background: rgba(239,68,68,0.15); color: var(--red); }
+.badge-degraded { background: rgba(234,179,8,0.15); color: var(--yellow); }
 .last-seen { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 10px; }
 .age { opacity: 0.7; }
 .checks { width: 100%; margin-bottom: 4px; }
@@ -44,6 +47,7 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
 .dot.green { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.4); }
 .dot.red { background: var(--red); box-shadow: 0 0 6px rgba(239,68,68,0.4); }
+.dot.yellow { background: var(--yellow); box-shadow: 0 0 6px rgba(234,179,8,0.4); }
 .sparkline { width: 100%; height: 16px; border-radius: 3px; overflow: hidden; display: block; }
 .spark-axis { position: relative; height: 14px; font-size: 0.6rem; color: var(--text-dim); margin-bottom: 10px; margin-left: 84px; }
 .spark-axis span { position: absolute; white-space: nowrap; }
@@ -83,6 +87,7 @@ footer a { color: var(--blue); }
             <button id="refresh-btn" onclick="loadDashboard()">Refresh</button>
         </div>
     </header>
+    <div class="stale-banner" id="stale-banner"></div>
     <div class="grid" id="cards">
         <p class="loading">Loading server data...</p>
     </div>
@@ -110,7 +115,6 @@ footer a { color: var(--blue); }
 <script>
 const BASE = 'https://raw.githubusercontent.com/benwwalker1/serverStatus/main';
 const SERVERS = ['nsc1', 'nsc2', 'nsc3', 'nsc4'];
-const STALE_SEC = 600;
 const REFRESH_MS = 300000;
 const HOURS_7D = 168;
 
@@ -155,15 +159,12 @@ function buildBuckets(entries, server) {
         const h = Math.floor((e.t - startSec) / 3600);
         if (h >= 0 && h < HOURS_7D) {
             out.on[h] = e.on;
-            // Backfill entries have null cuda/mumax — only update if we have real data
             if (e.cuda !== null) out.cuda[h] = e.cuda;
             if (e.mumax !== null) out.mumax[h] = e.mumax;
         }
     }
-    // After the first report, treat gaps as down — but only if the gap spans
-    // 2+ consecutive null hours (a real outage). Isolated null hours are just
-    // monitoring misses (pipeline sampling ~1/hr) and get interpolated as up.
-    // The most recent bucket also gets a 30-min grace period.
+    // Mark gaps of 2+ consecutive null hours as down (real outage).
+    // Single null hours are monitoring misses. Grace period for last 30 min.
     const cutoffBucket = Math.floor((nowSec - 1800 - startSec) / 3600);
     for (const key of ['on', 'cuda', 'mumax']) {
         let firstReport = -1;
@@ -171,19 +172,15 @@ function buildBuckets(entries, server) {
             if (out[key][i] !== null) { firstReport = i; break; }
         }
         if (firstReport < 0) continue;
-        // Find runs of consecutive nulls and only mark as down if run length >= 2
         let i = firstReport;
         const limit = Math.min(cutoffBucket, HOURS_7D - 1);
         while (i <= limit) {
             if (out[key][i] === null) {
-                // Find end of null run
                 let runStart = i;
                 while (i <= limit && out[key][i] === null) i++;
                 if (i - runStart >= 2) {
-                    // Real outage: 2+ consecutive hours without data
                     for (let j = runStart; j < i; j++) out[key][j] = false;
                 }
-                // else: single null hour, leave as null (renders as background)
             } else {
                 i++;
             }
@@ -230,6 +227,7 @@ function uptimePct(entries, server, windowHours) {
 // ── Helpers ──
 
 function dot(val) {
+    if (val === 'degraded') return '<span class="dot yellow"></span>';
     return '<span class="dot ' + (val ? 'green' : 'red') + '"></span>';
 }
 
@@ -247,37 +245,44 @@ function findLastOnline(entries, server) {
 
 // ── Rendering ──
 
-function renderCards(liveMap, entries) {
-    const nowSec = Math.floor(Date.now() / 1000);
+function renderCards(dashboard) {
+    const servers = dashboard.servers || {};
+    const entries = (dashboard.history || {}).entries || [];
     let html = '';
 
     for (const srv of SERVERS) {
-        const data = liveMap[srv];
-        const isOnline = data && (nowSec - data.timestamp_epoch) < STALE_SEC;
-        const cardCls = isOnline ? 'card up' : 'card down';
-        const badge = isOnline
-            ? '<span class="badge badge-up">ONLINE</span>'
-            : '<span class="badge badge-down">OFFLINE</span>';
+        const info = servers[srv];
+        const status = info ? info.status : 'down';
+        const state = info ? info.state : null;
+        const isUp = status === 'up';
+        const isDegraded = status === 'degraded';
+
+        const cardCls = 'card ' + status;
+        let badge;
+        if (isUp) badge = '<span class="badge badge-up">ONLINE</span>';
+        else if (isDegraded) badge = '<span class="badge badge-degraded">DEGRADED</span>';
+        else badge = '<span class="badge badge-down">OFFLINE</span>';
 
         let lastSeen, cuda, mumax, cpuUtil, gpuUtil, ramStr, gpuStr, gpuNames, ageStr, mumaxVer, cudaDriver, sshHtml;
 
-        if (data && isOnline) {
-            cuda = data.cuda_ok;
-            mumax = data.mumax3_ok;
-            cpuUtil = vna(data.cpu_util_pct); if (cpuUtil !== 'N/A') cpuUtil += '%';
-            gpuUtil = vna(data.gpu_util_pct); if (gpuUtil !== 'N/A') gpuUtil += '%';
-            const rf = vna(data.ram_free_gb), rt = vna(data.ram_total_gb);
+        if (state && (isUp || isDegraded)) {
+            cuda = state.cuda_ok;
+            mumax = state.mumax3_ok;
+            cpuUtil = vna(state.cpu_util_pct); if (cpuUtil !== 'N/A') cpuUtil += '%';
+            gpuUtil = vna(state.gpu_util_pct); if (gpuUtil !== 'N/A') gpuUtil += '%';
+            const rf = vna(state.ram_free_gb), rt = vna(state.ram_total_gb);
             ramStr = (rf !== 'N/A' && rt !== 'N/A') ? rf + ' / ' + rt + ' GB' : 'N/A';
-            const gf = vna(data.gpu_free_count), gc = vna(data.gpu_count);
+            const gf = vna(state.gpu_free_count), gc = vna(state.gpu_count);
             gpuStr = (gf !== 'N/A' && gc !== 'N/A') ? gf + ' / ' + gc + ' free' : 'N/A';
-            gpuNames = vna(data.gpu_names);
-            mumaxVer = vna(data.mumax3_version);
-            cudaDriver = vna(data.cuda_driver_version);
-            lastSeen = formatTime(data.timestamp_utc);
-            ageStr = timeAgo(data.timestamp_epoch);
+            gpuNames = vna(state.gpu_names);
+            mumaxVer = vna(state.mumax3_version);
+            cudaDriver = vna(state.cuda_driver_version);
+            lastSeen = formatTime(state.timestamp_utc);
+            ageStr = timeAgo(state.timestamp_epoch);
         } else {
             cuda = 0; mumax = 0; cpuUtil = 'N/A'; gpuUtil = 'N/A';
             mumaxVer = 'N/A'; cudaDriver = 'N/A';
+            // Fall back to last known data from history
             const hist = findLastOnline(entries, srv);
             if (hist) {
                 lastSeen = formatTime(new Date(hist.t * 1000).toISOString());
@@ -289,22 +294,30 @@ function renderCards(liveMap, entries) {
                 gpuNames = vna(hist.gpu_n);
                 mumaxVer = vna(hist.mx_v);
                 cudaDriver = vna(hist.cd_v);
+            } else if (state) {
+                // Have stale state data
+                lastSeen = formatTime(state.timestamp_utc);
+                ageStr = timeAgo(state.timestamp_epoch);
+                const rt = vna(state.ram_total_gb);
+                ramStr = rt !== 'N/A' ? rt + ' GB (last known)' : 'N/A';
+                const gc = vna(state.gpu_count);
+                gpuStr = gc !== 'N/A' ? gc + ' total (last known)' : 'N/A';
+                gpuNames = vna(state.gpu_names);
+                mumaxVer = vna(state.mumax3_version);
+                cudaDriver = vna(state.cuda_driver_version);
             } else {
                 lastSeen = 'Never'; ageStr = '';
                 ramStr = gpuStr = gpuNames = 'N/A';
             }
         }
 
-        // SSH reachability: who can reach this server?
-        sshHtml = '';
-        for (const other of SERVERS) {
-            if (other === srv) continue;
-            const otherData = liveMap[other];
-            if (otherData && otherData.ssh_checks && srv in otherData.ssh_checks) {
-                sshHtml += '<span>' + other + ' ' + dot(otherData.ssh_checks[srv]) + '</span> ';
-            }
+        // SSH reachability from server-determined data
+        const reachFrom = info ? (info.reachable_from || []) : [];
+        if (reachFrom.length) {
+            sshHtml = reachFrom.map(function(s) { return '<span>' + s + ' ' + dot(true) + '</span>'; }).join(' ');
+        } else {
+            sshHtml = 'N/A';
         }
-        if (!sshHtml) sshHtml = 'N/A';
 
         const bk = buildBuckets(entries, srv);
         const up24 = uptimePct(entries, srv, 24);
@@ -312,12 +325,14 @@ function renderCards(liveMap, entries) {
         const up30d = uptimePct(entries, srv, 720);
         const upAll = uptimePct(entries, srv, null);
 
+        const onlineDot = isDegraded ? dot('degraded') : dot(isUp);
+
         html += '<div class="' + cardCls + '">' +
             '<div class="card-header"><h2>' + srv + '</h2>' + badge + '</div>' +
             '<div class="last-seen">Last report: ' + lastSeen +
                 (ageStr ? ' <span class="age">(' + ageStr + ')</span>' : '') + '</div>' +
             '<table class="checks">' +
-            '<tr><td>Online</td><td>' + dot(isOnline) + '</td><td>' + sparkSVG(bk.on) + '</td></tr>' +
+            '<tr><td>Online</td><td>' + onlineDot + '</td><td>' + sparkSVG(bk.on) + '</td></tr>' +
             '<tr><td>CUDA</td><td>' + dot(cuda) + '</td><td>' + sparkSVG(bk.cuda) + '</td></tr>' +
             '<tr><td>Mumax3</td><td>' + dot(mumax) + '</td><td>' + sparkSVG(bk.mumax) + '</td></tr>' +
             '</table>' +
@@ -367,7 +382,6 @@ function renderIncidents(incidents) {
     if (!incidents || !incidents.length) {
         return '<p style="color:var(--text-dim);padding:12px;">No incidents recorded yet.</p>';
     }
-    // Filter by server
     let filtered = incidents;
     if (_incidentFilter !== 'all') {
         filtered = incidents.filter(i => i.s === _incidentFilter);
@@ -424,31 +438,37 @@ async function fetchJSON(url) {
     return r.json();
 }
 
-async function fetchAll() {
-    const [liveArr, history, incidents] = await Promise.all([
-        Promise.all(SERVERS.map(s => fetchJSON(BASE + '/data/live/' + s + '.json'))),
-        fetchJSON(BASE + '/data/history.json'),
-        fetchJSON(BASE + '/data/incidents.json'),
-    ]);
-    const live = {};
-    liveArr.forEach((d, i) => { if (d) live[SERVERS[i]] = d; });
-    return {
-        live: live,
-        history: history || { entries: [] },
-        incidents: incidents || { incidents: [] },
-    };
-}
-
 // ── Main ──
 
 async function loadDashboard() {
     try {
-        const data = await fetchAll();
-        document.getElementById('cards').innerHTML = renderCards(data.live, data.history.entries || []);
-        _incidentData = data.incidents.incidents || [];
+        const dashboard = await fetchJSON(BASE + '/data/dashboard.json');
+        if (!dashboard) {
+            document.getElementById('updated').textContent = 'Error: could not load dashboard data';
+            return;
+        }
+
+        // Stale data warning: if dashboard is > 20 min old, monitoring may be fully down
+        const banner = document.getElementById('stale-banner');
+        const nowSec = Math.floor(Date.now() / 1000);
+        const staleThreshold = dashboard.stale_threshold || 600;
+        const dashAge = nowSec - (dashboard.generated_epoch || 0);
+        if (dashAge > staleThreshold * 2) {
+            banner.textContent = 'Dashboard data is ' + timeAgo(dashboard.generated_epoch) + ' old. All servers may be unreachable or the monitoring system is down.';
+            banner.style.display = 'block';
+        } else {
+            banner.style.display = 'none';
+        }
+
+        document.getElementById('cards').innerHTML = renderCards(dashboard);
+
+        _incidentData = dashboard.incidents || [];
         renderIncidentFilters(_incidentData);
         document.getElementById('incidents').innerHTML = renderIncidents(_incidentData);
-        document.getElementById('history').innerHTML = renderHistory(data.history.entries || []);
+
+        const histEntries = (dashboard.history || {}).entries || [];
+        document.getElementById('history').innerHTML = renderHistory(histEntries);
+
         const now = new Date();
         document.getElementById('updated').textContent = 'Loaded: ' +
             fmtDate(now, 'America/Chicago') + ' ' +
