@@ -1,0 +1,18 @@
+{
+  "server": "nsc1",
+  "timestamp_utc": "2026-03-19T13:40:01Z",
+  "timestamp_epoch": 1773927601,
+  "cuda_ok": 1,
+  "mumax3_ok": 1,
+  "gpu_util_pct": 0,
+  "cpu_util_pct": 10.1,
+  "ram_free_gb": 113.1,
+  "ram_total_gb": 125.2,
+  "gpu_count": 1,
+  "gpu_free_count": 1,
+  "gpu_names": "Tesla P100-PCIE-16GB",
+  "mumax3_version": "3.11",
+  "cuda_driver_version": "12.9",
+  "ssh_checks": {"nsc2": 0, "nsc3": 0, "nsc4": 0},
+  "heartbeat_backfill": []
+}
