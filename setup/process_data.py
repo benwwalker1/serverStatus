@@ -166,10 +166,11 @@ def last_csv_epoch(rows, server):
     return 0
 
 
-def append_new_reports(csv_file, states, server_statuses):
-    """Append new rows to CSV for servers that have fresh state data."""
+def append_new_reports(csv_file, states, server_statuses, now_epoch, now_utc):
+    """Append new rows to CSV for all servers, including explicit down/degraded rows."""
     existing = load_csv(csv_file)
     new_rows = []
+    wrote_fresh = set()
 
     for srv in SERVERS:
         state = states.get(srv)
@@ -205,6 +206,39 @@ def append_new_reports(csv_file, states, server_statuses):
             "reachable_from": ",".join(reachable_from),
         }
         new_rows.append(row)
+        wrote_fresh.add(srv)
+
+    # Write explicit rows for servers that are down or degraded but had no fresh data.
+    # This ensures the CSV (and therefore history) records downtime, not just silence.
+    for srv in SERVERS:
+        if srv in wrote_fresh:
+            continue
+        status, _, reachable_from = server_statuses.get(srv, ("down", "", []))
+        if status == "up":
+            continue
+
+        last_ep = last_csv_epoch(existing + new_rows, srv)
+        if now_epoch - last_ep < 120:
+            continue  # avoid duplicate rows within the same cycle
+
+        new_rows.append({
+            "timestamp_utc": now_utc,
+            "timestamp_epoch": str(now_epoch),
+            "server": srv,
+            "status": status,
+            "cuda_ok": "NA",
+            "mumax3_ok": "NA",
+            "gpu_util_pct": "NA",
+            "cpu_util_pct": "NA",
+            "ram_free_gb": "NA",
+            "ram_total_gb": "NA",
+            "gpu_count": "NA",
+            "gpu_free_count": "NA",
+            "gpu_names": "NA",
+            "mumax3_version": "NA",
+            "cuda_driver_version": "NA",
+            "reachable_from": ",".join(reachable_from),
+        })
 
     if new_rows:
         with open(csv_file, "a", newline="") as f:
@@ -450,7 +484,7 @@ def main():
     # Update CSV
     csv_file = os.path.join(args.data_dir, "status.csv")
     ensure_csv(csv_file)
-    append_new_reports(csv_file, states, server_statuses)
+    append_new_reports(csv_file, states, server_statuses, now_epoch, now_utc)
 
     # Generate history and incidents from full CSV
     all_rows = load_csv(csv_file)

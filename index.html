@@ -214,14 +214,30 @@ function sparkAxis() {
 function uptimePct(entries, server, windowHours) {
     const nowSec = Math.floor(Date.now() / 1000);
     const cutoff = windowHours !== null ? nowSec - windowHours * 3600 : 0;
-    let total = 0, online = 0;
+
+    // Collect entries for this server within the window
+    const relevant = [];
     for (const e of entries) {
-        if (e.s !== server || e.t < cutoff) continue;
-        total++;
-        if (e.on) online++;
+        if (e.s === server && e.t >= cutoff) relevant.push(e);
     }
-    if (total === 0) return 'N/A';
-    return (100 * online / total).toFixed(1) + '%';
+    if (!relevant.length) return 'N/A';
+
+    // Build hourly buckets from first report to now.
+    // Hours with no entry count as downtime — this matches the sparkline logic.
+    const firstEpoch = relevant[0].t;
+    const totalHours = Math.max(1, Math.floor((nowSec - firstEpoch) / 3600) + 1);
+    const buckets = new Array(totalHours).fill(null);
+    for (const e of relevant) {
+        const h = Math.floor((e.t - firstEpoch) / 3600);
+        if (h >= 0 && h < totalHours) buckets[h] = e.on;
+    }
+
+    let up = 0, total = 0;
+    for (let i = 0; i < totalHours; i++) {
+        total++;
+        if (buckets[i] === 1) up++;
+    }
+    return (100 * up / total).toFixed(1) + '%';
 }
 
 // ── Helpers ──
