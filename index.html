@@ -222,13 +222,15 @@ function uptimePct(entries, server, windowHours) {
     }
     if (!relevant.length) return 'N/A';
 
-    // Build hourly buckets from first report to now.
-    // Hours with no entry count as downtime — this matches the sparkline logic.
-    const firstEpoch = relevant[0].t;
-    const totalHours = Math.max(1, Math.floor((nowSec - firstEpoch) / 3600) + 1);
+    // Build hourly buckets from the window start to now.
+    // For fixed windows (24h, 7d, etc.), count from the window boundary so
+    // hours before the first entry are correctly counted as downtime.
+    // For all-time, start from the first entry.
+    const startEpoch = windowHours !== null ? cutoff : relevant[0].t;
+    const totalHours = Math.max(1, Math.floor((nowSec - startEpoch) / 3600) + 1);
     const buckets = new Array(totalHours).fill(null);
     for (const e of relevant) {
-        const h = Math.floor((e.t - firstEpoch) / 3600);
+        const h = Math.floor((e.t - startEpoch) / 3600);
         if (h >= 0 && h < totalHours) buckets[h] = e.on;
     }
 
