@@ -72,6 +72,22 @@ footer a { color: var(--blue); }
 .incident-filters button { background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
 .incident-filters button:hover { border-color: var(--blue); color: var(--text); }
 .incident-filters button.active { border-color: var(--blue); color: var(--text); background: rgba(59,130,246,0.15); }
+/* User activity accordion */
+.user-section { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 8px; }
+.user-toggle { display: flex; align-items: center; cursor: pointer; padding: 6px 0; color: var(--blue); font-size: 0.85rem; user-select: none; gap: 6px; }
+.user-toggle:hover { text-decoration: underline; }
+.user-toggle .arrow { transition: transform 0.2s; display: inline-block; font-size: 0.65rem; }
+.user-toggle.open .arrow { transform: rotate(90deg); }
+.user-content { display: none; margin-top: 8px; }
+.user-content.visible { display: block; }
+.user-tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+.user-tabs button { background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
+.user-tabs button:hover { border-color: var(--blue); color: var(--text); }
+.user-tabs button.active { border-color: var(--blue); color: var(--text); background: rgba(59,130,246,0.15); }
+table.user-data { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+table.user-data th { text-align: left; padding: 4px 6px; color: var(--text-dim); font-weight: 500; border-bottom: 1px solid var(--border); }
+table.user-data td { padding: 4px 6px; border-bottom: 1px solid rgba(51,65,85,0.3); }
+.no-user-data { color: var(--text-dim); font-size: 0.8rem; padding: 8px 0; }
 @media (max-width: 600px) {
     .grid { grid-template-columns: 1fr; }
     .slo { grid-template-columns: 1fr 1fr; }
@@ -227,7 +243,7 @@ function uptimePct(entries, server, windowHours) {
     // hours before the first entry are correctly counted as downtime.
     // For all-time, start from the first entry.
     const startEpoch = windowHours !== null ? cutoff : relevant[0].t;
-    const totalHours = Math.max(1, Math.floor((nowSec - startEpoch) / 3600) + 1);
+    const totalHours = Math.max(1, Math.ceil((nowSec - startEpoch) / 3600));
     const buckets = new Array(totalHours).fill(null);
     for (const e of relevant) {
         const h = Math.floor((e.t - startEpoch) / 3600);
@@ -369,7 +385,9 @@ function renderCards(dashboard) {
             '<span>7d: <b>' + up7d + '</b></span>' +
             '<span>30d: <b>' + up30d + '</b></span>' +
             '<span>All: <b>' + upAll + '</b></span>' +
-            '</div></div>';
+            '</div>' +
+            renderUserSection(srv) +
+            '</div>';
     }
     return html;
 }
@@ -448,6 +466,80 @@ function renderHistory(entries) {
         '</tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
+// ── User activity ──
+
+let _userStats = null;
+
+function renderUserTable(users) {
+    if (!users || !users.length) {
+        return '<span class="no-user-data">No active users</span>';
+    }
+    users = users.slice().sort(function(a, b) { return (b.gpu_pct || 0) - (a.gpu_pct || 0); });
+    var html = '<table class="user-data"><thead><tr><th>User</th><th>CPU %</th><th>GPU %</th><th>GPU Mem</th><th>RAM %</th></tr></thead><tbody>';
+    for (var i = 0; i < users.length; i++) {
+        var u = users[i];
+        html += '<tr><td>' + u.user + '</td>' +
+            '<td>' + (u.cpu_pct != null ? u.cpu_pct.toFixed(1) : 'N/A') + '</td>' +
+            '<td>' + (u.gpu_pct != null ? u.gpu_pct.toFixed(1) : 'N/A') + '</td>' +
+            '<td>' + (u.gpu_mem_mb != null ? u.gpu_mem_mb + ' MB' : 'N/A') + '</td>' +
+            '<td>' + (u.ram_pct != null ? u.ram_pct.toFixed(1) : 'N/A') + '</td></tr>';
+    }
+    html += '</tbody></table>';
+    return html;
+}
+
+function renderUserSection(srv) {
+    if (!_userStats || !_userStats.servers || !_userStats.servers[srv]) {
+        return '<div class="user-section"><span class="no-user-data">No user data available</span></div>';
+    }
+    var srvData = _userStats.servers[srv];
+    var current = srvData.current || [];
+    var id = 'user-' + srv;
+    var html = '<div class="user-section">' +
+        '<div class="user-toggle" onclick="toggleUser(\'' + id + '\', this)">' +
+        '<span class="arrow">&#9654;</span> User Activity (' + current.length + ' active)</div>' +
+        '<div class="user-content" id="' + id + '">';
+    html += '<div class="user-tabs" id="' + id + '-tabs">';
+    var tabs = ['Current', '24h', '7d', '30d', 'All'];
+    for (var i = 0; i < tabs.length; i++) {
+        var cls = tabs[i] === 'Current' ? 'active' : '';
+        html += '<button class="' + cls + '" onclick="switchUserTab(\'' + srv + '\', \'' + tabs[i] + '\')">' + tabs[i] + '</button>';
+    }
+    html += '</div>';
+    html += '<div id="' + id + '-table">' + renderUserTable(current) + '</div>';
+    html += '</div></div>';
+    return html;
+}
+
+function toggleUser(id, el) {
+    var content = document.getElementById(id);
+    if (content.classList.contains('visible')) {
+        content.classList.remove('visible');
+        el.classList.remove('open');
+    } else {
+        content.classList.add('visible');
+        el.classList.add('open');
+    }
+}
+
+function switchUserTab(srv, tab) {
+    if (!_userStats || !_userStats.servers || !_userStats.servers[srv]) return;
+    var srvData = _userStats.servers[srv];
+    var data;
+    if (tab === 'Current') {
+        data = srvData.current || [];
+    } else {
+        var key = tab.toLowerCase();
+        data = (srvData.averages || {})[key] || [];
+    }
+    var id = 'user-' + srv;
+    document.getElementById(id + '-table').innerHTML = renderUserTable(data);
+    var tabs = document.getElementById(id + '-tabs');
+    tabs.querySelectorAll('button').forEach(function(btn) {
+        btn.classList.toggle('active', btn.textContent === tab);
+    });
+}
+
 // ── Data fetching ──
 
 async function fetchJSON(url) {
@@ -460,7 +552,11 @@ async function fetchJSON(url) {
 
 async function loadDashboard() {
     try {
-        const dashboard = await fetchJSON(BASE + '/data/dashboard.json');
+        const [dashboard, userStats] = await Promise.all([
+            fetchJSON(BASE + '/data/dashboard.json'),
+            fetchJSON(BASE + '/data/user_stats.json').catch(function() { return null; }),
+        ]);
+        _userStats = userStats;
         if (!dashboard) {
             document.getElementById('updated').textContent = 'Error: could not load dashboard data';
             return;

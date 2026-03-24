@@ -24,6 +24,11 @@ CSV_HEADER = [
     "mumax3_version", "cuda_driver_version", "reachable_from",
 ]
 
+USER_CSV_HEADER = [
+    "timestamp_epoch", "server", "user",
+    "cpu_pct", "gpu_pct", "gpu_mem_mb", "ram_pct", "num_processes",
+]
+
 # Incident detection threshold — matches STALE_THRESHOLD from config
 STALE_SECONDS = 600
 
@@ -441,6 +446,154 @@ def archive_old_data(csv_file, data_dir):
     print(f"CSV trimmed to {len(keep)} rows")
 
 
+# ── User Stats Pipeline ───────────────────────────────────────
+
+USER_WINDOWS = {"24h": 86400, "7d": 604800, "30d": 2592000, "all": None}
+
+
+def ensure_user_csv(csv_file):
+    """Create user CSV with header if it doesn't exist."""
+    if not os.path.exists(csv_file):
+        with open(csv_file, "w", newline="") as f:
+            csv.writer(f).writerow(USER_CSV_HEADER)
+
+
+def load_user_csv(csv_file):
+    rows = []
+    if not os.path.exists(csv_file):
+        return rows
+    with open(csv_file, newline="") as f:
+        for r in csv.DictReader(f):
+            rows.append(r)
+    return rows
+
+
+def append_user_reports(csv_file, states, now_epoch):
+    """Append per-user rows from state files to user CSV."""
+    existing = load_user_csv(csv_file)
+    # Find last recorded epoch per server
+    last_epoch = {}
+    for r in existing:
+        srv = r["server"]
+        ep = int(r["timestamp_epoch"])
+        if ep > last_epoch.get(srv, 0):
+            last_epoch[srv] = ep
+
+    new_rows = []
+    for srv in SERVERS:
+        state = states.get(srv)
+        if not state:
+            continue
+        epoch = int(state["timestamp_epoch"])
+        if epoch <= last_epoch.get(srv, 0):
+            continue
+        users = state.get("users", [])
+        for u in users:
+            new_rows.append({
+                "timestamp_epoch": str(epoch),
+                "server": srv,
+                "user": u.get("user", ""),
+                "cpu_pct": str(u.get("cpu_pct", 0)),
+                "gpu_pct": str(u.get("gpu_pct", 0)),
+                "gpu_mem_mb": str(u.get("gpu_mem_mb", 0)),
+                "ram_pct": str(u.get("ram_pct", 0)),
+                "num_processes": str(u.get("num_processes", 0)),
+            })
+
+    if new_rows:
+        with open(csv_file, "a", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=USER_CSV_HEADER)
+            for row in new_rows:
+                w.writerow(row)
+        print(f"Appended {len(new_rows)} user row(s) to CSV")
+
+
+def generate_user_stats(user_rows, states, now_epoch):
+    """Compute per-server, per-user averages for each time window."""
+    result = {"generated_epoch": now_epoch, "servers": {}}
+
+    for srv in SERVERS:
+        # Current snapshot from state
+        state = states.get(srv)
+        current = state.get("users", []) if state else []
+
+        averages = {}
+        for window_name, window_secs in USER_WINDOWS.items():
+            cutoff = (now_epoch - window_secs) if window_secs else 0
+            filtered = [
+                r for r in user_rows
+                if r["server"] == srv and int(r["timestamp_epoch"]) >= cutoff
+            ]
+
+            by_user = {}
+            for r in filtered:
+                u = r["user"]
+                if u not in by_user:
+                    by_user[u] = {"cpu": [], "gpu": [], "gmem": [], "ram": []}
+                by_user[u]["cpu"].append(float(r["cpu_pct"] or 0))
+                by_user[u]["gpu"].append(float(r["gpu_pct"] or 0))
+                by_user[u]["gmem"].append(float(r["gpu_mem_mb"] or 0))
+                by_user[u]["ram"].append(float(r["ram_pct"] or 0))
+
+            avg_list = []
+            for u in sorted(by_user):
+                data = by_user[u]
+                avg_list.append({
+                    "user": u,
+                    "cpu_pct": round(sum(data["cpu"]) / len(data["cpu"]), 1),
+                    "gpu_pct": round(sum(data["gpu"]) / len(data["gpu"]), 1),
+                    "gpu_mem_mb": int(sum(data["gmem"]) / len(data["gmem"])),
+                    "ram_pct": round(sum(data["ram"]) / len(data["ram"]), 1),
+                })
+            averages[window_name] = avg_list
+
+        result["servers"][srv] = {"current": current, "averages": averages}
+
+    return result
+
+
+def archive_user_data(csv_file, data_dir):
+    """Move user CSV rows older than ARCHIVE_DAYS to monthly archives."""
+    rows = load_user_csv(csv_file)
+    now_epoch = int(datetime.now(timezone.utc).timestamp())
+    cutoff = now_epoch - ARCHIVE_DAYS * 86400
+
+    keep = []
+    archive = {}
+    for r in rows:
+        ep = int(r["timestamp_epoch"])
+        if ep < cutoff:
+            dt = datetime.fromtimestamp(ep, tz=timezone.utc)
+            month_key = dt.strftime("%Y-%m")
+            archive.setdefault(month_key, []).append(r)
+        else:
+            keep.append(r)
+
+    if not archive:
+        return
+
+    archive_dir = os.path.join(data_dir, "archive")
+    os.makedirs(archive_dir, exist_ok=True)
+
+    for month_key, month_rows in archive.items():
+        path = os.path.join(archive_dir, f"users-{month_key}.csv")
+        write_header = not os.path.exists(path)
+        with open(path, "a", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=USER_CSV_HEADER, extrasaction="ignore")
+            if write_header:
+                w.writeheader()
+            for row in month_rows:
+                w.writerow(row)
+        print(f"Archived {len(month_rows)} user rows to {path}")
+
+    with open(csv_file, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=USER_CSV_HEADER)
+        w.writeheader()
+        for row in keep:
+            w.writerow(row)
+    print(f"User CSV trimmed to {len(keep)} rows")
+
+
 # ── Main ─────────────────────────────────────────────────────
 
 def main():
@@ -493,6 +646,19 @@ def main():
 
     # Archive old data
     archive_old_data(csv_file, args.data_dir)
+
+    # User stats pipeline
+    user_csv_file = os.path.join(args.data_dir, "user_history.csv")
+    ensure_user_csv(user_csv_file)
+    append_user_reports(user_csv_file, states, now_epoch)
+    user_rows = load_user_csv(user_csv_file)
+    user_stats = generate_user_stats(user_rows, states, now_epoch)
+    archive_user_data(user_csv_file, args.data_dir)
+
+    user_stats_file = os.path.join(args.data_dir, "user_stats.json")
+    with open(user_stats_file, "w") as f:
+        json.dump(user_stats, f, separators=(",", ":"))
+    print(f"User stats: {sum(len(v['current']) for v in user_stats['servers'].values())} active users across {len(user_stats['servers'])} servers")
 
     # Build dashboard.json
     dashboard = {

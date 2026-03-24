@@ -115,6 +115,54 @@ if [ -f /proc/meminfo ]; then
     fi
 fi
 
+# -- Per-user resource usage --
+users_json="[]"
+_user_cpu_ram=$(ps -eo user,%cpu,%mem --no-headers 2>/dev/null | \
+    awk '{cpu[$1]+=$2; mem[$1]+=$3; cnt[$1]++} END {for(u in cpu) print u, cpu[u], mem[u], cnt[u]}')
+
+_user_gpu=""
+if [ "$cuda_ok" -eq 1 ] && command -v nvidia-smi >/dev/null 2>&1; then
+    _pmon=$(nvidia-smi pmon -s um -c 1 2>/dev/null | grep -v '^#')
+    if [ -n "$_pmon" ]; then
+        _user_gpu=$(echo "$_pmon" | awk '$2 != "-" && $2 != "" {print $2, ($4=="-"?0:$4), ($8=="-"?0:$8)}' | while read pid sm fb; do
+            _u=$(ps -o user= -p "$pid" 2>/dev/null | tr -d ' ')
+            [ -z "$_u" ] && continue
+            echo "$_u $sm $fb"
+        done | awk '{gpu[$1]+=$2; gmem[$1]+=$3} END {for(u in gpu) print u, gpu[u], gmem[u]}')
+    fi
+fi
+
+users_json=$(python3 -c "
+import os, sys, json
+cpu_ram = {}
+for line in '''${_user_cpu_ram}'''.strip().split('\n'):
+    if not line.strip(): continue
+    parts = line.split()
+    if len(parts) < 4: continue
+    user = parts[0]
+    try:
+        uid = int(os.popen('id -u ' + user + ' 2>/dev/null').read().strip())
+    except (ValueError, OSError):
+        continue
+    if uid < 1000: continue
+    cpu_ram[user] = {'cpu_pct': round(float(parts[1]),1), 'ram_pct': round(float(parts[2]),1), 'num_processes': int(parts[3])}
+
+gpu_data = {}
+for line in '''${_user_gpu}'''.strip().split('\n'):
+    if not line.strip(): continue
+    parts = line.split()
+    if len(parts) < 3: continue
+    gpu_data[parts[0]] = {'gpu_pct': round(float(parts[1]),1), 'gpu_mem_mb': int(float(parts[2]))}
+
+all_users = sorted(set(list(cpu_ram.keys()) + list(gpu_data.keys())))
+result = []
+for u in all_users:
+    cr = cpu_ram.get(u, {'cpu_pct':0,'ram_pct':0,'num_processes':0})
+    gd = gpu_data.get(u, {'gpu_pct':0,'gpu_mem_mb':0})
+    result.append({'user':u, 'cpu_pct':cr['cpu_pct'], 'gpu_pct':gd['gpu_pct'], 'gpu_mem_mb':gd['gpu_mem_mb'], 'ram_pct':cr['ram_pct'], 'num_processes':cr['num_processes']})
+print(json.dumps(result))
+" 2>/dev/null || echo "[]")
+
 # -- Write state file atomically --
 _tmp_state="$STATE_DIR/.${HOSTNAME_SHORT}.json.tmp"
 cat > "$_tmp_state" <<ENDJSON
@@ -132,7 +180,8 @@ cat > "$_tmp_state" <<ENDJSON
   "gpu_free_count": ${gpu_free},
   "gpu_names": ${gpu_names},
   "mumax3_version": ${mumax_version},
-  "cuda_driver_version": ${cuda_driver}
+  "cuda_driver_version": ${cuda_driver},
+  "users": ${users_json}
 }
 ENDJSON
 mv "$_tmp_state" "$STATE_DIR/${HOSTNAME_SHORT}.json"
@@ -221,43 +270,55 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# -- Push dashboard.json to GitHub --
-DASHBOARD_FILE="$DATA_DIR/dashboard.json"
-if [ ! -f "$DASHBOARD_FILE" ]; then
+# -- Push files to GitHub --
+push_to_github() {
+    local local_file="$1"
+    local repo_path="$2"
+    local api_url="https://api.github.com/repos/${REPO}/contents/${repo_path}"
+    local content_b64
+    content_b64=$(base64 -w 0 "$local_file" 2>/dev/null || base64 "$local_file")
+
+    local sha
+    sha=$(curl -sf -H "Authorization: token ${GITHUB_TOKEN}" \
+        -H "Accept: application/vnd.github.v3+json" \
+        "$api_url" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('sha',''))" 2>/dev/null || true)
+
+    local payload
+    if [ -n "$sha" ]; then
+        payload="{\"message\":\"dashboard update ${ts_utc}\",\"content\":\"${content_b64}\",\"sha\":\"${sha}\"}"
+    else
+        payload="{\"message\":\"dashboard update ${ts_utc}\",\"content\":\"${content_b64}\"}"
+    fi
+
+    local _resp_body
+    _resp_body=$(mktemp)
+    local http_code
+    http_code=$(curl -s -o "$_resp_body" -w "%{http_code}" -X PUT \
+        -H "Authorization: token ${GITHUB_TOKEN}" \
+        -H "Accept: application/vnd.github.v3+json" \
+        "$api_url" \
+        -d "$payload")
+
+    if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
+        log_msg "Phase 3: pushed ${repo_path} (HTTP ${http_code})"
+    else
+        local _err
+        _err=$(head -c 200 "$_resp_body" 2>/dev/null)
+        log_msg "Phase 3: push FAILED ${repo_path} (HTTP ${http_code}) ${_err}"
+    fi
+    rm -f "$_resp_body"
+}
+
+if [ ! -f "$DATA_DIR/dashboard.json" ]; then
     log_msg "Phase 3: dashboard.json not found"
     exit 1
 fi
 
-FILE_PATH="data/dashboard.json"
-API_URL="https://api.github.com/repos/${REPO}/contents/${FILE_PATH}"
-content_b64=$(base64 -w 0 "$DASHBOARD_FILE" 2>/dev/null || base64 "$DASHBOARD_FILE")
+push_to_github "$DATA_DIR/dashboard.json" "data/dashboard.json"
 
-# Get current SHA (needed for updates)
-sha=$(curl -sf -H "Authorization: token ${GITHUB_TOKEN}" \
-    -H "Accept: application/vnd.github.v3+json" \
-    "$API_URL" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('sha',''))" 2>/dev/null || true)
-
-if [ -n "$sha" ]; then
-    payload="{\"message\":\"dashboard update ${ts_utc}\",\"content\":\"${content_b64}\",\"sha\":\"${sha}\"}"
-else
-    payload="{\"message\":\"dashboard update ${ts_utc}\",\"content\":\"${content_b64}\"}"
+if [ -f "$DATA_DIR/user_stats.json" ]; then
+    push_to_github "$DATA_DIR/user_stats.json" "data/user_stats.json"
 fi
 
-_resp_body=$(mktemp)
-http_code=$(curl -s -o "$_resp_body" -w "%{http_code}" -X PUT \
-    -H "Authorization: token ${GITHUB_TOKEN}" \
-    -H "Accept: application/vnd.github.v3+json" \
-    "$API_URL" \
-    -d "$payload")
-
-if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
-    log_msg "Phase 3: pushed dashboard.json (HTTP ${http_code})"
-    echo "[${ts_utc}] Leader ${HOSTNAME_SHORT}: push OK"
-else
-    _err=$(head -c 200 "$_resp_body" 2>/dev/null)
-    log_msg "Phase 3: push FAILED (HTTP ${http_code}) ${_err}"
-    echo "[${ts_utc}] Leader ${HOSTNAME_SHORT}: push failed (HTTP ${http_code})" >&2
-fi
-
-rm -f "$_resp_body"
+echo "[${ts_utc}] Leader ${HOSTNAME_SHORT}: push done"
 log_msg "=== monitor.sh done ==="
