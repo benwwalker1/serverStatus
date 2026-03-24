@@ -148,7 +148,7 @@ for line in '''${_user_cpu_ram}'''.strip().split('\n'):
         uid = int(os.popen('id -u ' + user + ' 2>/dev/null').read().strip())
     except (ValueError, OSError):
         continue
-    if uid < 1000: continue
+    if uid < 1000 or user in ('root', 'gdm'): continue
     cpu_ram[user] = {'cpu_pct': round(float(parts[1]),1), 'ram_pct': round(float(parts[2]),1), 'num_processes': int(parts[3])}
 
 gpu_data = {}
