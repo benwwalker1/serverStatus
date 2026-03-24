@@ -450,6 +450,15 @@ def archive_old_data(csv_file, data_dir):
 
 USER_WINDOWS = {"24h": 86400, "7d": 604800, "30d": 2592000, "all": None}
 
+# System/service accounts to exclude from user stats
+EXCLUDE_USERS = {
+    "root", "gdm", "libstoragemgmt", "nobody", "dbus", "polkitd",
+    "sssd", "chrony", "rpc", "rpcuser", "nfsnobody", "postfix",
+    "sshd", "systemd-coredump", "systemd-resolve", "avahi", "colord",
+    "flatpak", "geoclue", "gnome-initial-setup", "rtkit", "pipewire",
+    "setroubleshoot", "abrt", "unbound", "clevis", "pesign", "saslauth",
+}
+
 
 def ensure_user_csv(csv_file):
     """Create user CSV with header if it doesn't exist."""
@@ -489,6 +498,8 @@ def append_user_reports(csv_file, states, now_epoch):
             continue
         users = state.get("users", [])
         for u in users:
+            if u.get("user", "") in EXCLUDE_USERS:
+                continue
             new_rows.append({
                 "timestamp_epoch": str(epoch),
                 "server": srv,
@@ -513,9 +524,10 @@ def generate_user_stats(user_rows, states, now_epoch):
     result = {"generated_epoch": now_epoch, "servers": {}}
 
     for srv in SERVERS:
-        # Current snapshot from state
+        # Current snapshot from state (filtered)
         state = states.get(srv)
-        current = state.get("users", []) if state else []
+        current = [u for u in (state.get("users", []) if state else [])
+                   if u.get("user", "") not in EXCLUDE_USERS]
 
         averages = {}
         for window_name, window_secs in USER_WINDOWS.items():
@@ -523,6 +535,7 @@ def generate_user_stats(user_rows, states, now_epoch):
             filtered = [
                 r for r in user_rows
                 if r["server"] == srv and int(r["timestamp_epoch"]) >= cutoff
+                and r.get("user", "") not in EXCLUDE_USERS
             ]
 
             by_user = {}
