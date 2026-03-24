@@ -138,17 +138,42 @@ fi
 
 users_json=$(python3 -c "
 import os, sys, json
+
+EXCLUDE = {'root', 'gdm', 'libstoragemgmt', 'nobody', 'dbus', 'polkitd',
+           'sssd', 'chrony', 'rpc', 'rpcuser', 'nfsnobody', 'postfix',
+           'sshd', 'systemd-coredump', 'systemd-resolve', 'avahi', 'colord',
+           'flatpak', 'geoclue', 'gnome-initial-setup', 'rtkit', 'pipewire',
+           'setroubleshoot', 'abrt', 'unbound', 'clevis', 'pesign', 'saslauth'}
+_checked = {}
+def is_real_user(user):
+    if user in _checked: return _checked[user]
+    if user in EXCLUDE:
+        _checked[user] = False
+        return False
+    try:
+        uid = int(os.popen('id -u ' + user + ' 2>/dev/null').read().strip())
+    except (ValueError, OSError):
+        _checked[user] = False
+        return False
+    if uid < 1000:
+        _checked[user] = False
+        return False
+    try:
+        shell = os.popen('getent passwd ' + user + ' 2>/dev/null').read().strip().split(':')[-1]
+        if shell in ('/sbin/nologin', '/bin/false', '/usr/sbin/nologin'):
+            _checked[user] = False
+            return False
+    except: pass
+    _checked[user] = True
+    return True
+
 cpu_ram = {}
 for line in '''${_user_cpu_ram}'''.strip().split('\n'):
     if not line.strip(): continue
     parts = line.split()
     if len(parts) < 4: continue
     user = parts[0]
-    try:
-        uid = int(os.popen('id -u ' + user + ' 2>/dev/null').read().strip())
-    except (ValueError, OSError):
-        continue
-    if uid < 1000 or user in ('root', 'gdm'): continue
+    if not is_real_user(user): continue
     cpu_ram[user] = {'cpu_pct': round(float(parts[1]),1), 'ram_pct': round(float(parts[2]),1), 'num_processes': int(parts[3])}
 
 gpu_data = {}
@@ -156,7 +181,9 @@ for line in '''${_user_gpu}'''.strip().split('\n'):
     if not line.strip(): continue
     parts = line.split()
     if len(parts) < 3: continue
-    gpu_data[parts[0]] = {'gpu_pct': round(float(parts[1]),1), 'gpu_mem_mb': int(float(parts[2]))}
+    user = parts[0]
+    if not is_real_user(user): continue
+    gpu_data[user] = {'gpu_pct': round(float(parts[1]),1), 'gpu_mem_mb': int(float(parts[2]))}
 
 all_users = sorted(set(list(cpu_ram.keys()) + list(gpu_data.keys())))
 result = []
