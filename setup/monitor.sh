@@ -117,17 +117,21 @@ fi
 
 # -- Per-user resource usage --
 users_json="[]"
-_user_cpu_ram=$(ps -eo user,%cpu,%mem --no-headers 2>/dev/null | \
+_user_cpu_ram=$(ps -eo user:32,%cpu,%mem --no-headers 2>/dev/null | \
     awk '{cpu[$1]+=$2; mem[$1]+=$3; cnt[$1]++} END {for(u in cpu) print u, cpu[u], mem[u], cnt[u]}')
 
 _user_gpu=""
 if [ "$cuda_ok" -eq 1 ] && command -v nvidia-smi >/dev/null 2>&1; then
-    _pmon=$(nvidia-smi pmon -s um -c 1 2>/dev/null | grep -v '^#')
+    _pmon_all=$(nvidia-smi pmon -s um -c 1 2>/dev/null)
+    # Find fb column dynamically from header (varies by driver version)
+    _fb_col=$(echo "$_pmon_all" | head -1 | awk '{for(i=1;i<=NF;i++) if($i=="fb"){print i-1;exit}}')
+    [ -z "$_fb_col" ] && _fb_col=8
+    _pmon=$(echo "$_pmon_all" | grep -v '^#')
     if [ -n "$_pmon" ]; then
-        _user_gpu=$(echo "$_pmon" | awk '$2 != "-" && $2 != "" {print $2, ($4=="-"?0:$4), ($8=="-"?0:$8)}' | while read pid sm fb; do
-            _u=$(ps -o user= -p "$pid" 2>/dev/null | tr -d ' ')
+        _user_gpu=$(echo "$_pmon" | awk -v fb="$_fb_col" '$2 != "-" && $2 != "" {sm=($4=="-"?0:$4); fbv=($fb=="-"?0:$fb); print $2, sm, fbv}' | while read pid sm fbm; do
+            _u=$(ps -o user:32= -p "$pid" 2>/dev/null | tr -d ' ')
             [ -z "$_u" ] && continue
-            echo "$_u $sm $fb"
+            echo "$_u $sm $fbm"
         done | awk '{gpu[$1]+=$2; gmem[$1]+=$3} END {for(u in gpu) print u, gpu[u], gmem[u]}')
     fi
 fi
