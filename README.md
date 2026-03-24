@@ -20,7 +20,9 @@ A self-monitoring system for lab GPU servers (nsc1–nsc4) behind a VPN. Servers
 │  │   └── ...                                                │
 │  ├── data/            ← leader writes CSV history + archive │
 │  │   ├── status.csv                                         │
+│  │   ├── user_history.csv                                   │
 │  │   ├── dashboard.json  ← aggregated output for GitHub     │
+│  │   ├── user_stats.json ← per-user stats for GitHub        │
 │  │   └── archive/                                           │
 │  ├── lock/            ← mkdir-based leader election         │
 │  ├── monitor.sh       ← the single script, run via cron    │
@@ -31,12 +33,12 @@ A self-monitoring system for lab GPU servers (nsc1–nsc4) behind a VPN. Servers
 
 Every 5 minutes, on every server:
 
-  Phase 1: Collect own metrics → write state/<hostname>.json
+  Phase 1: Collect own metrics + per-user usage → write state/<hostname>.json
   Phase 2: SSH-probe peer servers → write reachability/<hostname>.json
-  Phase 3: Leader election → one server aggregates + pushes dashboard.json to GitHub
+  Phase 3: Leader election → one server aggregates + pushes to GitHub
 ```
 
-The frontend (`index.html`) is a static page on GitHub Pages that fetches `data/dashboard.json` from the repo's raw content URL.
+The frontend (`index.html`) is a static page on GitHub Pages that fetches `data/dashboard.json` and `data/user_stats.json` from the repo's raw content URL.
 
 ## How status is determined
 
@@ -52,6 +54,90 @@ Each server's status is one of **up**, **degraded**, or **down**, determined by 
 - **SSH-reachable** means at least one other server successfully ran `ssh <target> "echo ok"` within the same threshold window.
 
 This two-signal approach prevents false positives: a server with a stuck cron job but working SSH shows as "degraded" rather than falsely "down".
+
+## Metrics collected
+
+Each server reports every 5 minutes:
+
+| Metric | Source |
+|--------|--------|
+| CUDA status | `nvidia-smi` query |
+| GPU utilization, count, free count | `nvidia-smi` (free = <10% util AND <500MB VRAM) |
+| GPU names | `nvidia-smi --query-gpu=name` |
+| Mumax3 status | `mumax3 -test` output parsing |
+| Mumax3 version | Extracted from `mumax3 -test` (`//mumax X.Y`) |
+| CUDA driver version | Extracted from `mumax3 -test` (`CUDA Driver X.Y`) |
+| CPU utilization | `/proc/stat` delta over 1 second |
+| RAM free / total | `/proc/meminfo` |
+| Per-user CPU/RAM usage | `ps -eo user:32,%cpu,%mem` aggregated by username |
+| Per-user GPU usage | `nvidia-smi pmon -s um -c 1` mapped PID→user via `ps` |
+| SSH reachability | `ssh -o BatchMode=yes -o ConnectTimeout=5` to each peer |
+
+### Per-user resource tracking
+
+Each state file includes a `"users"` array with per-user CPU%, GPU%, GPU memory (MB), RAM%, and process count. The collection pipeline:
+
+1. **CPU/RAM:** `ps -eo user:32,%cpu,%mem --no-headers` aggregated per username via `awk`
+2. **GPU:** `nvidia-smi pmon -s um -c 1` provides per-process GPU utilization and framebuffer memory. The `fb` column position is detected dynamically from the header (varies by CUDA driver version). Each PID is mapped to a username via `ps -o user:32= -p <PID>`.
+3. **Filtering:** Users are filtered through three layers:
+   - **Explicit exclusion list:** `root`, `gdm`, `libstoragemgmt`, `nobody`, `dbus`, `polkitd`, `sssd`, `chrony`, `sshd`, and ~20 other system accounts
+   - **UID check:** Users with UID < 1000 are excluded
+   - **Shell check:** Users with `/sbin/nologin` or `/bin/false` shells are excluded
+4. **Merging:** An inline Python script merges CPU/RAM and GPU data per user, applies filtering, and outputs a JSON array.
+
+The same exclusion list is enforced in both `monitor.sh` (collection) and `process_data.py` (aggregation), so system accounts are filtered even from historical CSV data.
+
+## Per-user statistics pipeline
+
+Separate from the main server metrics, a parallel pipeline tracks per-user resource usage over time:
+
+```
+state/<host>.json "users" array
+        │
+        ▼
+  data/user_history.csv     ← append-only, one row per user per server per cycle
+        │
+        ▼
+  generate_user_stats()     ← compute averages per time window
+        │
+        ▼
+  data/user_stats.json      ← pushed to GitHub alongside dashboard.json
+```
+
+**Time windows:** Current snapshot, 24-hour average, 7-day average, 30-day average, and all-time average.
+
+**Output schema** (`data/user_stats.json`):
+```json
+{
+  "generated_epoch": 1774346412,
+  "servers": {
+    "nsc2": {
+      "current": [
+        {"user": "jdoe", "cpu_pct": 12.5, "gpu_pct": 85.0, "gpu_mem_mb": 174, "ram_pct": 3.2, "num_processes": 8}
+      ],
+      "averages": {
+        "24h": [{"user": "jdoe", "cpu_pct": 10.1, "gpu_pct": 72.3, "gpu_mem_mb": 150, "ram_pct": 3.0}],
+        "7d":  [],
+        "30d": [],
+        "all": []
+      }
+    }
+  }
+}
+```
+
+**Archival:** User CSV rows older than 30 days are moved to `data/archive/users-YYYY-MM.csv`.
+
+## Dashboard features
+
+- **Status cards** with live metrics, version info, and SSH reachability
+- **7-day sparkline** per server per check (Online, CUDA, Mumax3) — green/red/gray bars by hour
+- **Uptime SLO** percentages: 24h, 7d, 30d, all-time
+- **Per-user resource usage** — expandable accordion in each server card showing CPU%, GPU%, GPU memory, and RAM% per user, with tabs to switch between Current / 24h / 7d / 30d / All averages
+- **Incident log** with state-change detection (up/down transitions), deduplication of cascading failures, and server grouping
+- **Stale data banner** when all monitoring is down
+- Auto-refreshes every 5 minutes
+- Times shown in US Central, EU Central, and UTC
 
 ## Race conditions and leader election
 
@@ -132,44 +218,35 @@ When GitHub becomes reachable again:
 
 No data is lost during a GitHub outage — the shared filesystem acts as a local buffer.
 
-## Metrics collected
-
-Each server reports every 5 minutes:
-
-| Metric | Source |
-|--------|--------|
-| CUDA status | `nvidia-smi` query |
-| GPU utilization, count, free count | `nvidia-smi` (free = <10% util AND <500MB VRAM) |
-| Mumax3 status | `mumax3 -test` output parsing |
-| Mumax3 version | Extracted from `mumax3 -test` |
-| CUDA driver version | Extracted from `mumax3 -test` |
-| CPU utilization | `/proc/stat` delta over 1 second |
-| RAM free / total | `/proc/meminfo` |
-| SSH reachability | `ssh -o BatchMode=yes -o ConnectTimeout=5` to each peer |
-
-## Dashboard features
-
-- **Status cards** with live metrics, version info, and SSH reachability
-- **7-day sparkline** per server per check (Online, CUDA, Mumax3) — green/red/gray bars by hour
-- **Uptime SLO** percentages: 24h, 7d, 30d, all-time
-- **Incident log** with state-change detection (up/down transitions), deduplication of cascading failures, and server grouping
-- **Stale data banner** when all monitoring is down
-- Auto-refreshes every 5 minutes
-- Times shown in US Central, EU Central, and UTC
-
 ## File overview
 
 | File | Purpose |
 |------|---------|
 | `index.html` | Static dashboard (vanilla JS, GitHub Pages) |
-| `setup/monitor.sh` | Cron script — metrics, SSH probes, leader election, push |
-| `setup/process_data.py` | Data pipeline — status determination, CSV, history, incidents |
+| `setup/monitor.sh` | Cron script — metrics, per-user stats, SSH probes, leader election, push |
+| `setup/process_data.py` | Data pipeline — status determination, CSV, history, incidents, user stats |
 | `setup/config.example.sh` | Configuration template |
 | `setup/DEPLOY.md` | Step-by-step deployment instructions |
-| `data/dashboard.json` | Aggregated output pushed to GitHub by the leader |
-| `data/status.csv` | Append-only local history (30-day rolling window) |
+| `data/dashboard.json` | Aggregated server output pushed to GitHub by the leader |
+| `data/user_stats.json` | Per-user resource statistics pushed to GitHub by the leader |
+| `data/status.csv` | Append-only server history (30-day rolling window) |
+| `data/user_history.csv` | Append-only per-user history (30-day rolling window, server-side only) |
 | `data/archive/` | Monthly CSV archives for data older than 30 days |
-| `.github/workflows/pages.yml` | Deploys `index.html` to GitHub Pages on change |
+| `.github/workflows/pages.yml` | Deploys `index.html` to GitHub Pages on push |
+
+## Configuration
+
+`~/server_monitor/config.sh` (shared via NFS, deployed once):
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `REPO` | `benwwalker1/serverStatus` | GitHub repository (`owner/repo`) |
+| `SERVERS` | `nsc1 nsc2 nsc3 nsc4` | Space-separated list of server hostnames |
+| `STALE_THRESHOLD` | `600` | Seconds before a server's self-report is considered stale |
+| `REACHABILITY_THRESHOLD` | `600` | Seconds before SSH probe results are ignored |
+| `LOCK_MAX_AGE` | `300` | Seconds before a stuck lock is forcibly removed |
+| `MUMAX3_BIN` | `/usr/local/bin/mumax3` | Path to mumax3 binary |
+| `GITHUB_TOKEN` | — | GitHub personal access token with `repo` scope |
 
 ## Setup
 
@@ -189,11 +266,25 @@ crontab -e
 # Add: */5 * * * * ~/server_monitor/monitor.sh >> ~/server_monitor/logs/cron.log 2>&1
 ```
 
+### Updating scripts after changes
+
+Since `~/server_monitor/` is shared via NFS, updating from any one server updates all of them:
+
+```bash
+curl -sL "https://raw.githubusercontent.com/benwwalker1/serverStatus/main/setup/monitor.sh" \
+  -o ~/server_monitor/monitor.sh && chmod +x ~/server_monitor/monitor.sh
+
+curl -sL "https://raw.githubusercontent.com/benwwalker1/serverStatus/main/setup/process_data.py" \
+  -o ~/server_monitor/process_data.py
+```
+
+Changes take effect on the next cron cycle (within 5 minutes).
+
 ## Servers
 
 | Server | OS | GPUs | Mumax3 | CUDA Driver |
 |--------|----|------|--------|-------------|
 | nsc1 | RHEL | — | — | — |
-| nsc2 | RHEL 8.10 | 1× GTX 1080 Ti | 3.11 | 12.9 |
-| nsc3 | RHEL | 2× RTX 2080 Ti | 3.10 | 13.1 |
-| nsc4 | RHEL 9.7 | 2× RTX 2080 Ti | 3.11 | 13.1 |
+| nsc2 | RHEL 8.10 | 1x GTX 1080 Ti | 3.11 | 12.9 |
+| nsc3 | RHEL | 2x RTX 2080 Ti | 3.10 | 13.1 |
+| nsc4 | RHEL 9.7 | 2x RTX 2080 Ti | 3.11 | 13.1 |
