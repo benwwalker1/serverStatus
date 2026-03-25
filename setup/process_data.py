@@ -105,6 +105,7 @@ def determine_status(server, now_epoch, states, reach, stale_threshold, reach_th
 
     # Check SSH reachability from peers
     reachable_from = []
+    unreachable_from = []
     for observer, probe in reach.items():
         if observer == server:
             continue
@@ -112,6 +113,20 @@ def determine_status(server, now_epoch, states, reach, stale_threshold, reach_th
             continue  # stale probe
         if probe.get("targets", {}).get(server) == 1:
             reachable_from.append(observer)
+        else:
+            unreachable_from.append(observer)
+
+    # If the report looks fresh by the timeout, but a peer has a newer state
+    # AND this server is SSH-unreachable, it didn't update this cycle — it's
+    # actually down.  Don't wait for the full stale threshold.
+    if has_fresh_report and state and not reachable_from and unreachable_from:
+        server_epoch = int(state["timestamp_epoch"])
+        newest_peer_epoch = max(
+            (int(s["timestamp_epoch"]) for srv, s in states.items() if srv != server),
+            default=0,
+        )
+        if newest_peer_epoch > server_epoch:
+            has_fresh_report = False
 
     if has_fresh_report:
         return "up", "fresh_self_report", reachable_from
@@ -315,9 +330,15 @@ def generate_incidents(rows):
 
         # Check if this server was stale and is now reporting again
         if srv in stale_state and stale_state[srv]:
-            ts = datetime.fromtimestamp(epoch, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-            for name in ("Online", "CUDA", "Mumax3"):
-                incidents.append({"t": epoch, "ts": ts, "s": srv, "c": name, "d": "up"})
+            # Only generate recovery if the row shows the server is actually up
+            if "status" in r and r["status"]:
+                _row_up = r["status"] in ("up", "degraded")
+            else:
+                _row_up = r.get("online", "1") == "1"
+            if _row_up:
+                ts = datetime.fromtimestamp(epoch, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                for name in ("Online", "CUDA", "Mumax3"):
+                    incidents.append({"t": epoch, "ts": ts, "s": srv, "c": name, "d": "up"})
             stale_state[srv] = False
 
         # Check all other servers for staleness at this timestamp
@@ -644,6 +665,8 @@ def main():
             "status_reason": reason,
             "state": state_data,
             "last_seen_epoch": int(state_data["timestamp_epoch"]) if state_data else 0,
+            "last_checked_epoch": now_epoch,
+            "last_checked_utc": now_utc,
             "reachable_from": reachable_from,
         }
 

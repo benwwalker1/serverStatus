@@ -298,6 +298,7 @@ function renderCards(dashboard) {
         else badge = '<span class="badge badge-down">OFFLINE</span>';
 
         let lastSeen, cuda, mumax, cpuUtil, gpuUtil, ramStr, gpuStr, gpuNames, ageStr, mumaxVer, cudaDriver, sshHtml;
+        var lastSeenLabel = 'Last report', lastOnlineStr = '';
 
         if (state && (isUp || isDegraded)) {
             cuda = state.cuda_ok;
@@ -316,11 +317,23 @@ function renderCards(dashboard) {
         } else {
             cuda = 0; mumax = 0; cpuUtil = 'N/A'; gpuUtil = 'N/A';
             mumaxVer = 'N/A'; cudaDriver = 'N/A';
-            // Fall back to last known data from history
+            // Use last_checked time (when monitoring last confirmed offline status)
+            if (info && info.last_checked_utc) {
+                lastSeenLabel = 'Last checked';
+                lastSeen = formatTime(info.last_checked_utc);
+                ageStr = timeAgo(info.last_checked_epoch);
+            }
+            // Fall back to last known data from history for hardware info
             const hist = findLastOnline(entries, srv);
             if (hist) {
-                lastSeen = formatTime(new Date(hist.t * 1000).toISOString());
-                ageStr = timeAgo(hist.t);
+                var _histTime = formatTime(new Date(hist.t * 1000).toISOString());
+                var _histAge = timeAgo(hist.t);
+                if (lastSeen) {
+                    lastOnlineStr = _histTime + ' <span class="age">(' + _histAge + ')</span>';
+                } else {
+                    lastSeen = _histTime;
+                    ageStr = _histAge;
+                }
                 const rt = vna(hist.ram_t);
                 ramStr = rt !== 'N/A' ? rt + ' GB (last known)' : 'N/A';
                 const gc = vna(hist.gpu_c);
@@ -329,9 +342,13 @@ function renderCards(dashboard) {
                 mumaxVer = vna(hist.mx_v);
                 cudaDriver = vna(hist.cd_v);
             } else if (state) {
-                // Have stale state data
-                lastSeen = formatTime(state.timestamp_utc);
-                ageStr = timeAgo(state.timestamp_epoch);
+                if (lastSeen) {
+                    lastOnlineStr = formatTime(state.timestamp_utc) +
+                        ' <span class="age">(' + timeAgo(state.timestamp_epoch) + ')</span>';
+                } else {
+                    lastSeen = formatTime(state.timestamp_utc);
+                    ageStr = timeAgo(state.timestamp_epoch);
+                }
                 const rt = vna(state.ram_total_gb);
                 ramStr = rt !== 'N/A' ? rt + ' GB (last known)' : 'N/A';
                 const gc = vna(state.gpu_count);
@@ -340,7 +357,7 @@ function renderCards(dashboard) {
                 mumaxVer = vna(state.mumax3_version);
                 cudaDriver = vna(state.cuda_driver_version);
             } else {
-                lastSeen = 'Never'; ageStr = '';
+                if (!lastSeen) { lastSeen = 'Never'; ageStr = ''; }
                 ramStr = gpuStr = gpuNames = 'N/A';
             }
         }
@@ -363,8 +380,9 @@ function renderCards(dashboard) {
 
         html += '<div class="' + cardCls + '">' +
             '<div class="card-header"><h2>' + srv + '</h2>' + badge + '</div>' +
-            '<div class="last-seen">Last report: ' + lastSeen +
+            '<div class="last-seen">' + lastSeenLabel + ': ' + lastSeen +
                 (ageStr ? ' <span class="age">(' + ageStr + ')</span>' : '') + '</div>' +
+            (lastOnlineStr ? '<div class="last-seen">Last online: ' + lastOnlineStr + '</div>' : '') +
             '<table class="checks">' +
             '<tr><td>Online</td><td>' + onlineDot + '</td><td>' + sparkSVG(bk.on) + '</td></tr>' +
             '<tr><td>CUDA</td><td>' + dot(cuda) + '</td><td>' + sparkSVG(bk.cuda) + '</td></tr>' +
