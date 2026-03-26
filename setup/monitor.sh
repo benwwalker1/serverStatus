@@ -314,11 +314,14 @@ push_to_github() {
         -H "Accept: application/vnd.github.v3+json" \
         "$api_url" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('sha',''))" 2>/dev/null || true)
 
-    local payload
+    local _payload_file
+    _payload_file=$(mktemp)
     if [ -n "$sha" ]; then
-        payload="{\"message\":\"dashboard update ${ts_utc}\",\"content\":\"${content_b64}\",\"sha\":\"${sha}\"}"
+        printf '{"message":"dashboard update %s","content":"%s","sha":"%s"}' \
+            "$ts_utc" "$content_b64" "$sha" > "$_payload_file"
     else
-        payload="{\"message\":\"dashboard update ${ts_utc}\",\"content\":\"${content_b64}\"}"
+        printf '{"message":"dashboard update %s","content":"%s"}' \
+            "$ts_utc" "$content_b64" > "$_payload_file"
     fi
 
     local _resp_body
@@ -328,7 +331,8 @@ push_to_github() {
         -H "Authorization: token ${GITHUB_TOKEN}" \
         -H "Accept: application/vnd.github.v3+json" \
         "$api_url" \
-        -d "$payload")
+        -d @"$_payload_file")
+    rm -f "$_payload_file"
 
     if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
         log_msg "Phase 3: pushed ${repo_path} (HTTP ${http_code})"
