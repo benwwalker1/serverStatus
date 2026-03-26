@@ -271,36 +271,66 @@ def append_new_reports(csv_file, states, server_statuses, now_epoch, now_utc):
 
 # ── History Generation ───────────────────────────────────────
 
+def _on_val_from_row(r):
+    """Extract on/off value from a CSV row (1=up, 0=down)."""
+    if "status" in r and r["status"]:
+        return 1 if r["status"] in ("up", "degraded") else 0
+    elif "online" in r:
+        return int(r["online"]) if r.get("online") not in ("NA", "") else 0
+    return 0
+
+
 def generate_history(rows):
-    """Generate 7-day hourly history entries."""
+    """Generate 7-day hourly history entries.
+
+    Uses the LATEST row per (server, hour) for metric values, but the WORST
+    (minimum) value for status fields (on, cuda, mumax). This ensures that a
+    confirmed-down event is visible in the sparkline even if the server
+    recovers within the same hour.
+    """
     now_epoch = int(datetime.now(timezone.utc).timestamp())
     cutoff = now_epoch - HISTORY_DAYS * 86400
 
-    hourly = {}
+    hourly = {}       # latest row per (server, hour) — used for metrics
+    hourly_worst = {} # worst on/cuda/mumax per (server, hour)
+
     for r in rows:
         epoch = int(r["timestamp_epoch"])
         if epoch < cutoff:
             continue
         key = (r["server"], epoch // 3600)
+
+        # Keep the latest row for metric values
         if key not in hourly or epoch > int(hourly[key]["timestamp_epoch"]):
             hourly[key] = r
 
-    entries = []
-    for r in sorted(hourly.values(), key=lambda x: int(x["timestamp_epoch"])):
-        # Handle both old 'online' column and new 'status' column
-        if "status" in r and r["status"]:
-            on_val = 1 if r["status"] in ("up", "degraded") else 0
-        elif "online" in r:
-            on_val = int(r["online"]) if r.get("online") not in ("NA", "") else 0
+        # Track worst status values seen during the hour
+        on = _on_val_from_row(r)
+        cuda = _intval(r.get("cuda_ok"))
+        mumax = _intval(r.get("mumax3_ok"))
+
+        if key not in hourly_worst:
+            hourly_worst[key] = {"on": on, "cuda": cuda, "mumax": mumax}
         else:
-            on_val = 0
+            w = hourly_worst[key]
+            if on == 0:
+                w["on"] = 0
+            if cuda == 0:
+                w["cuda"] = 0
+            if mumax == 0:
+                w["mumax"] = 0
+
+    entries = []
+    for key in sorted(hourly.keys(), key=lambda k: int(hourly[k]["timestamp_epoch"])):
+        r = hourly[key]
+        w = hourly_worst.get(key, {})
 
         entries.append({
             "t": int(r["timestamp_epoch"]),
             "s": r["server"],
-            "on": on_val,
-            "cuda": _intval(r.get("cuda_ok")),
-            "mumax": _intval(r.get("mumax3_ok")),
+            "on": w.get("on", 0),
+            "cuda": w.get("cuda"),
+            "mumax": w.get("mumax"),
             "gpu_u": _num(r.get("gpu_util_pct")),
             "cpu_u": _num(r.get("cpu_util_pct")),
             "ram_f": _num(r.get("ram_free_gb")),
